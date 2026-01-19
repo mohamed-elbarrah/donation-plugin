@@ -24,7 +24,7 @@ if (!function_exists('donation_render_card')) {
 
         // Mode-aware labels (تبرع vs وقف)
         $collected_label = ($donation_mode === 'donation') ? 'التبرعات الحالية' : 'إجمالي الوقف';
-        $amount_title = ($donation_mode === 'donation') ? 'مبلغ التبرع' : 'مبلغ الوقف';
+        $amount_title = ($donation_mode === 'donation') ? 'مبلغ التبرع' : 'اختر مبلغ المساهمة';
         $cta_label = ($donation_mode === 'donation') ? 'تبرع الآن' : 'أضف للسلة';
 
         // Determine progress message texts (main + optional sub) so we can render

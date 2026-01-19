@@ -145,7 +145,7 @@ add_filter('woocommerce_get_item_data', function ($item_data, $cart_item) {
         }
 
         $mode = $product_id ? get_post_meta($product_id, '_donation_mode', true) : '';
-        $key = ($mode === 'wakf') ? 'مبلغ الوقف' : 'مبلغ التبرع';
+        $key = ($mode === 'wakf') ? 'اختر مبلغ المساهمة' : 'مبلغ التبرع';
 
         $item_data[] = array(
             'key' => $key,

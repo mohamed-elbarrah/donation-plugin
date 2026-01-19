@@ -13,7 +13,7 @@
     if (window.donation_quick_product && window.donation_quick_product.mode) {
       var mode = window.donation_quick_product.mode;
       var panelLabel = mode === 'donation' ? 'تبرع سريع' : 'وقف سريع';
-      var amountLabel = mode === 'donation' ? 'مبلغ التبرع' : 'مبلغ الوقف';
+      var amountLabel = mode === 'donation' ? 'مبلغ التبرع' : 'اختر مبلغ المساهمة';
       var donateBtnLabel = mode === 'donation' ? 'تبرع الآن' : 'أضف للسلة';
       $root.find('.donation-quick-panel').attr('aria-label', panelLabel);
       $root.find('.card-title').text(panelLabel);

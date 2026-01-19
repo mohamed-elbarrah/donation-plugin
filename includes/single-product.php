@@ -63,7 +63,7 @@ add_action('woocommerce_single_product_summary', function () {
 
     // Labels that vary by mode (تبرع vs وقف)
     $collected_label = ($donation_mode === 'donation') ? 'التبرعات الحالية' : 'إجمالي الوقف';
-    $amount_aria = ($donation_mode === 'donation') ? 'مبلغ التبرع' : 'مبلغ الوقف';
+    $amount_aria = ($donation_mode === 'donation') ? 'مبلغ التبرع' : 'اختر مبلغ المساهمة';
 
     ?>
     <div class="donation-single-container">
