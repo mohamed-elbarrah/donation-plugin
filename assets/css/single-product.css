@@ -1,0 +1,267 @@
+/* Styles for single product donation panel (RTL-ready) */
+.donation-single-container{max-width:1200px;margin:0 auto;box-sizing:border-box}
+.donation-single-wrap{display:flex;flex-direction:row;gap:28px;margin-top:0;align-items:stretch;flex-wrap:wrap;box-sizing:border-box;width:100%}
+.donation-single-left{flex:1 1 58%;min-width:300px;order:1;box-sizing:border-box;padding:18px;background:var(--donation-white);border:1px solid var(--donation-border);border-radius:12px;box-shadow:0 12px 40px rgba(11,33,17,0.06)}
+.donation-single-right{flex:0 0 440px;max-width:560px;min-width:240px;order:2;display:flex;align-items:stretch;justify-content:center;box-sizing:border-box;overflow:hidden}
+.donation-amount-box{background:var(--donation-white);border:1px solid var(--donation-border);padding:16px;border-radius:12px;box-shadow:0 10px 30px rgba(18,34,25,0.04);margin-top:18px}
+.donation-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.donation-presets-header{font-size:13px;color:#666;margin-bottom:8px;font-weight:600}
+.donation-presets .preset-amount{padding:8px 12px;border:1px solid #e6e6e6;background:#fff;cursor:pointer;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:64px;font-weight:700}
+.donation-presets .preset-amount:not(.preset-other){direction:ltr;unicode-bidi:isolate}
+.donation-presets .preset-amount .preset-currency{font-weight:700;font-size:15px;color:#6b6b6b;opacity:.95;line-height:1}
+.donation-presets .preset-amount .preset-amount-text{display:inline-block}
+.donation-presets .preset-amount.active{background:var(--donation-gold);color:var(--donation-white);border-color:var(--donation-gold)}
+.donation-presets .preset-amount.active .preset-currency{color:rgba(255,255,255,.95);opacity:1}
+.donation-presets .preset-other{background:#fafafa}
+.donation-input-row{display:flex;align-items:stretch;gap:10px;margin-bottom:8px}
+.donation-input-row .input-with-symbol{position:relative;flex:1 1 0;min-width:0}
+.input-with-symbol{position:relative;width:100%}
+.currency-symbol{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:inline-block;background:transparent;border:0;font-weight:800;font-size:22px;line-height:1;pointer-events:none}
+.donation-amount-input{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;padding-left:56px;padding-right:12px;height:44px;box-sizing:border-box;font-size:15px;line-height:1}
+
+/* Make placeholder a bit smaller and lighter so the symbol reads stronger */
+.donation-amount-input::placeholder{ font-size:13px; color:rgba(60,70,75,0.45); }
+
+/* make donate button share width with input and match height */
+.donation-input-row .donation-donate-now{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;padding:0 16px;border-radius:6px;height:44px;box-sizing:border-box;font-size:15px;line-height:1;border:1px solid #ddd;overflow:hidden}
+.donation-input-row .donation-donate-now.button.alt{background:linear-gradient(180deg,var(--donation-blue) 0%,#223f53 100%);color:var(--donation-white);border-color:transparent;border-style:solid}
+
+/* Strong overrides to ensure input and donate button match exactly across themes */
+.donation-input-row .donation-amount-input,
+.donation-input-row .donation-donate-now,
+.donation-input-row .donation-donate-now.button,
+.donation-input-row .donation-donate-now a,
+.donation-input-row .donation-donate-now .button{
+  height:44px !important;
+  min-height:44px !important;
+  box-sizing:border-box !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  padding-left:16px !important;
+  padding-right:16px !important;
+  font-size:15px !important;
+  line-height:1 !important;
+  border-radius:6px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+.donation-input-row .donation-donate-now{border:1px solid var(--donation-border) !important}
+.donation-input-row .donation-donate-now.button.alt{border-color:transparent !important;color:var(--donation-white) !important;background:linear-gradient(180deg,var(--donation-blue) 0%,#223f53 100%) !important;box-shadow:0 6px 18px rgba(41,77,103,0.12) !important;transition:transform 160ms ease,filter 160ms ease,box-shadow 160ms ease}
+.donation-input-row .donation-donate-now.button.alt:hover{background:linear-gradient(180deg,#21384a 0%,#172e3b 100%) !important;filter:brightness(.98) !important;transform:translateY(-1px) !important}
+.donation-actions{display:flex;gap:8px;margin-top:12px}
+.donation-actions .button{flex:1;padding:10px 12px;border-radius:6px;border:0;background:var(--donation-gold);color:var(--donation-white);cursor:pointer}
+.donation-actions .button.alt{background:var(--donation-white);color:var(--donation-gold);border:1px solid var(--donation-gold)}
+.donation-card-header{position:relative;max-width:560px;width:100%;overflow:hidden}
+.donation-card-header img{max-width:100%;height:auto;border-radius:12px;display:block;box-shadow:0 12px 40px rgba(11,33,17,0.08);object-fit:cover;transform-origin:center center}
+
+/* Desktop: make card header fill the right column and overlay small thumbs at the bottom */
+.donation-card-header{display:flex;flex-direction:column;height:100%;position:relative;overflow:hidden}
+.donation-card-header .donation-main-image{width:100%;height:100%;object-fit:cover;border-radius:12px;display:block}
+.donation-gallery-thumbs{display:flex;gap:8px;justify-content:center;margin-top:0;flex-wrap:nowrap;position:absolute;left:12px;right:12px;bottom:12px;z-index:6}
+.donation-gallery-thumbs .gallery-thumb{border:1px solid var(--donation-border);background:var(--donation-white);padding:3px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.donation-gallery-thumbs .gallery-thumb img{display:block;width:52px;height:52px;object-fit:cover;border-radius:4px}
+.donation-gallery-thumbs .gallery-thumb.active{border-color:var(--donation-gold);box-shadow:0 4px 12px rgba(183,161,128,0.12)}
+
+/* Image scale on large screens removed to keep exact sizing */
+@media (min-width:981px){
+  .donation-card-header img{transform:none}
+}
+.progress-bar-container{margin:16px 0}
+.progress-bar-track{background:#e9f2ea;border-radius:8px;overflow:hidden}
+.progress-bar-fill{background:linear-gradient(90deg,#1f8f59,#17a05e);color:var(--donation-white);padding:6px 10px;min-height:20px;display:flex;align-items:center;border-radius:6px}
+.progress-bar-label{font-size:12px;font-weight:700;padding:2px 8px}
+.donation-meta .donation-title{margin:10px 0 12px;font-size:22px}
+.donation-location{color:#666;margin-bottom:6px}
+.donation-stats{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+.donation-stats .stat{background:var(--donation-white);padding:12px;border:1px solid var(--donation-border);border-radius:6px;min-width:140px}
+.donation-stats .label{display:block;color:#666;font-size:12px}
+.donation-stats .value{display:inline-flex;align-items:center;font-weight:700;margin-top:6px;direction:ltr;unicode-bidi:isolate}
+.donation-stats .currency-inline{margin-inline-end:12px;margin-right:12px;font-weight:700}
+.donation-stats .stat-amount{display:inline-block}
+
+/* Location stat: icon + text */
+.donation-stats .stat.location .location-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:transparent;border-radius:50%;color:#2b8a47;margin-inline-start:8px;font-size:16px;line-height:1;transform-origin:center center}
+.donation-stats .stat.location .location-text{display:inline-block}
+
+/* subtle pop animation when element appears */
+@keyframes location-pop {
+  0% { transform: scale(.85); opacity: 0 }
+  60% { transform: scale(1.08); opacity: 1 }
+  100% { transform: scale(1); opacity: 1 }
+}
+.donation-stats .stat.location .location-icon{animation: location-pop 420ms cubic-bezier(.2,.9,.2,1) both}
+
+/* Respect RTL logical spacing */
+[dir="rtl"] .donation-stats .stat.location .location-icon{margin-inline-start:0;margin-inline-end:0}
+
+/* RTL adjustment removed: using logical `margin-inline-end` for LTR/RTL-safe spacing */
+
+/* Responsive */
+@media (max-width:980px){
+  .donation-single-wrap{flex-direction:column}
+  .donation-single-left,.donation-single-right{flex:1;order:initial;padding:0}
+  .donation-single-right{margin-top:12px;display:flex;justify-content:center}
+  /* adjust left column padding on mobile to fit card layout */
+  .donation-single-left{padding:12px !important}
+  .donation-amount-box{position:relative;padding:12px;border-radius:10px}
+  .donation-amount-box{margin-top:12px}
+
+  /* Mobile image and header adjustments */
+  .donation-card-header{display:flex;justify-content:center;margin-bottom:12px}
+  .donation-card-header img{max-width:420px;width:100%;height:auto;border-radius:12px}
+  .donation-title{font-size:20px;text-align:center;margin:12px 0}
+  .donation-location{ text-align:center;margin-bottom:8px}
+
+  /* Gallery thumbnails shown below main image */
+  .donation-gallery-thumbs{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+  .donation-gallery-thumbs .gallery-thumb{border:1px solid #eee;background:#fff;padding:3px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+  .donation-gallery-thumbs .gallery-thumb img{display:block;width:52px;height:52px;object-fit:cover;border-radius:4px}
+  .donation-gallery-thumbs .gallery-thumb.active{border-color:var(--donation-gold);box-shadow:0 4px 12px rgba(183,161,128,0.12)}
+
+  /* Make sure donation main image preserves aspect and sits above thumbs */
+  .donation-card-header{display:block}
+  .donation-card-header .donation-main-image{width:100%;height:auto;border-radius:12px;display:block}
+  .donation-card-header .donation-badge{position:absolute;top:12px;right:12px}
+
+  /* Make progress full width and slightly smaller */
+  .progress-bar-container{margin:10px 0}
+  .progress-bar-track{height:18px}
+  .progress-bar-fill{min-height:18px;padding:4px 8px}
+
+  /* Compact stats into two responsive columns */
+  .donation-stats{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .donation-stats .stat{flex:1 1 48%;min-width:0;padding:10px;border-radius:8px}
+
+  /* Presets and input: make them easier to tap */
+  .donation-presets{gap:6px}
+  .donation-presets .preset-amount{flex:1 1 auto;min-width:0;padding:10px;text-align:center}
+  .donation-input-row{display:flex;gap:8px;align-items:center}
+  /* On mobile increase CTA button width so it's easier to tap */
+  .donation-input-row .donation-donate-now{flex:0 0 36%;min-width:110px}
+  .donation-input-row .donation-amount-input{flex:1 1 auto}
+  .input-with-symbol{width:100%}
+  .currency-symbol{position:absolute;left:auto}
+  .donation-amount-input{padding:10px;padding-right:48px}
+
+  /* Actions full-width stacked on mobile */
+  .donation-actions{display:flex;flex-direction:row;gap:8px}
+  .donation-actions .button{flex:1;padding:12px}
+}
+
+/* On large screens keep image on right and content left; make amount box sticky */
+@media (min-width:981px){
+  /* Keep side-by-side on large screens but allow natural shrinking to avoid overflow */
+  .donation-single-wrap{flex-wrap:nowrap}
+  .donation-amount-box{position:static;top:auto}
+  .donation-single-left{order:1}
+  .donation-single-right{order:2}
+  /* ensure right column never overflows the container */
+  .donation-single-right{flex-shrink:0}
+  /* Desktop: show stats in 4 columns */
+  .donation-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:stretch}
+  .donation-stats .stat{min-width:0}
+}
+
+/* RTL: when page direction is RTL make sure image stays visually on the right */
+[dir="rtl"] .donation-single-wrap{flex-direction:row}
+/* In RTL the flex main-start is on the right, so swap orders
+  so `.donation-single-left` remains visually on the left */
+[dir="rtl"] .donation-single-left{order:2}
+[dir="rtl"] .donation-single-right{order:1}
+
+/* Ensure currency symbol inside input stays on the left for better UX; adjust paddings */
+.donation-input-row .currency-symbol{left:12px;right:auto}
+.donation-input-row .donation-amount-input{padding-left:48px;padding-right:12px}
+
+/* RTL override: keep the currency visually on the left even in RTL layouts (per UX request) */
+[dir="rtl"] .donation-input-row .currency-symbol{left:12px;right:auto}
+[dir="rtl"] .donation-input-row .donation-amount-input{padding-left:48px;padding-right:12px}
+
+/* Remove native number input spinners for a cleaner UX */
+.donation-amount-input::-webkit-outer-spin-button,
+.donation-amount-input::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Chrome, Edge, Safari */
+.donation-amount-input{
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+/* Firefox fallback */
+input[type="number"].donation-amount-input{ -moz-appearance: textfield }
+
+/* Ensure theme summary area uses full width so our layout aligns properly */
+.entry-summary,
+.entry-summary .entry-summary-items,
+.summary.entry-summary.entry-summary-items,
+.summary.entry-summary{
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Related section container alignment to match single product */
+.donation-related-wrap{max-width:1200px;margin:36px auto;padding:0 20px;box-sizing:border-box}
+
+.donation-related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+
+/* Hide default theme/WooCommerce related products sections so our custom grid is the only one shown */
+.related.products,
+.related.products ul.products,
+.woocommerce .related.products,
+.woocommerce .related.products ul.products,
+.related-products,
+.woocommerce-related-products,
+.upsells.products,
+.woocommerce .upsells.products{
+  display: none !important;
+}
+
+/* Hide theme/page title on product pages so only our donation title is shown */
+body.post-type-product h1.entry-title,
+body.post-type-product .page-title,
+.single-product h1.entry-title,
+.single-product .page-title,
+.post-type-product .page-title,
+.post-type-product .entry-title,
+.product_title,
+.product_title.entry-title,
+.entry-title.product_title{
+  display: none !important;
+}
+
+.donation-title{display:block !important}
+
+/* Improve tab description readability: slightly smaller, tighter lines, and balanced margins */
+.tab-description{
+  font-size:15px;
+  line-height:1.6;
+  color:#39424a;
+  margin-top:12px;
+  margin-bottom:18px;
+  max-width:78ch;
+}
+.tab-description p{margin:0 0 .9em}
+.tab-description h2,.tab-description h3{font-size:18px;margin:.6em 0}
+
+@media (max-width:980px){
+  .tab-description{font-size:14px;line-height:1.5}
+  .tab-description h2,.tab-description h3{font-size:16px}
+}
+
+/* Remove unwanted theme dividers and product meta on our custom product page */
+body.post-type-product .ct-product-divider,
+.post-type-product .ct-product-divider,
+body.post-type-product .product_meta,
+.post-type-product .product_meta{
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}

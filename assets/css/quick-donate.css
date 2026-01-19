@@ -1,0 +1,136 @@
+/* Quick-donate floating button & panel - layout/positioning only.
+   Visual styling (buttons, inputs, CTA) reuses donation-cards.css classes
+   such as .preset-amount, .amount-input and .donate-btn to ensure visual parity. */
+.donation-quick-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  direction: rtl;
+  font-family: inherit;
+}
+.donation-quick-btn .quick-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--donation-blue, #0f1724);
+  color: var(--donation-white, #fff);
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+  cursor: pointer;
+}
+/* icon inside the toggle uses currentColor so it matches label/CTA */
+.donation-quick-btn .quick-toggle .quick-toggle-icon{ display:block; width:18px; height:18px; color:currentColor }
+.donation-quick-btn .quick-toggle .icon{ display:inline-flex; align-items:center; justify-content:center }
+.donation-quick-panel {
+  width: 320px;
+  max-width: calc(100vw - 40px);
+  background: var(--donation-white, #fff);
+  border-radius: 14px; /* match card radius */
+  overflow: hidden;
+  margin-bottom: 12px;
+  transition: transform 0.22s ease, opacity 0.2s ease;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+.donation-quick-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,0.42); z-index:99998; backdrop-filter: blur(6px) saturate(120%);
+}
+.donation-quick-backdrop.hidden{ display:none }
+
+/* Modal state: center the panel and elevate it above the backdrop */
+.donation-quick-btn.modal-open .donation-quick-panel{
+  position:fixed !important; top:50%; left:50%; right:auto; bottom:auto; transform:translate(-50%,-50%);
+  width: min(92vw, 520px); max-width:520px; z-index:99999; margin-bottom:0; border-radius:12px;
+}
+
+/* close button */
+.donation-quick-panel .quick-close{
+  position:static;
+  background:transparent;
+  border:0;
+  color:rgb(255, 60, 60);
+  font-weight:700;
+  cursor:pointer;
+  padding:6px 8px;
+  font-size:14px;
+}
+.donation-quick-panel .quick-close:focus{ outline:2px solid rgba(0,0,0,0.08) }
+.donation-quick-panel.hidden { display: none }
+.donation-quick-panel .panel-inner { padding: 12px 14px 18px 14px; direction: rtl }
+
+.donation-quick-panel .panel-help { font-size:13px; color:#6b7280; margin:0 0 10px 0; text-align:center }
+
+/* Ensure preset containers follow card layout rules
+   Individual preset buttons use .preset-amount from donation-cards.css */
+.donation-quick-panel .preset-amounts{ display:flex; gap:8px; margin-bottom:30px; flex-wrap:wrap }
+
+/* card-actions wrapper adjustments for quick panel */
+.donation-quick-panel .card-actions{ gap:8px; align-items:center }
+.donation-quick-panel .currency-input{ position:relative; flex:1 1 auto; min-width:0 }
+.donation-quick-panel .currency-input .currency-symbol{ position:absolute; left:12px; top:50%; transform:translateY(-50%); pointer-events:none; display:inline-flex; align-items:center; justify-content:center; padding:0 8px }
+.donation-quick-panel .currency-input .amount-input{ padding-left:48px; min-width:0 }
+
+/* minimized state */
+.donation-quick-btn.minimized .quick-toggle{ padding:8px }
+
+@media (max-width:480px){
+  .donation-quick-panel{ width:92vw; right:8px; left:8px }
+  .donation-quick-btn{ bottom:18px; right:8px }
+}
+
+/* Compact / polished overrides for quick panel only */
+.donation-quick-panel { width: 280px; border-radius: 12px; }
+.donation-quick-panel .card-title { font-size: 14px; font-weight:800; margin-bottom:6px }
+.donation-quick-panel .panel-inner { padding:10px }
+.donation-quick-panel .preset-amounts { gap:6px; margin-bottom:16px }
+.donation-quick-panel .preset-amounts.types { justify-content:center; align-items:center }
+.donation-quick-panel .preset-amounts.types .preset-type,
+.donation-quick-panel .preset-amounts.types .preset-amount{
+  background: var(--donation-surface, #f3f4f6);
+  color: var(--donation-text, #111827);
+  border: 1px solid var(--donation-edge, #e5e7eb);
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+.donation-quick-panel .preset-amounts.types .preset-type:hover,
+.donation-quick-panel .preset-amounts.types .preset-amount:hover{ box-shadow: 0 6px 12px rgba(0,0,0,0.06) }
+.donation-quick-panel .preset-amounts.types .active{
+  background: var(--donation-blue, #0f1724);
+  color: var(--donation-white, #fff);
+  border-color: var(--donation-blue, #0f1724);
+  box-shadow: 0 8px 20px rgba(15,23,36,0.12);
+}
+.donation-quick-panel .preset-amounts.types .active .preset-check{ color: rgba(255,255,255,0.95) }
+.donation-quick-panel .preset-amount { padding:6px 8px; font-size:13px; border-radius:8px; min-width:48px }
+.donation-quick-panel .preset-side.preset-left { min-width:28px; padding:0 6px }
+.donation-quick-panel .preset-side.preset-right { min-width:28px; padding:0 6px }
+.donation-quick-panel .preset-currency { font-size:16px; color:var(--donation-gold); }
+.donation-quick-panel .preset-value { font-size:13px; padding:2px 6px; }
+.donation-quick-panel .preset-amount.active { box-shadow: 0 6px 14px rgba(0,0,0,0.06); }
+
+.donation-quick-panel .card-actions { gap:8px }
+.donation-quick-panel .currency-input { min-width:80px }
+.donation-quick-panel .currency-input .currency-symbol { left:10px; font-size:16px }
+.donation-quick-panel .currency-input .amount-input { padding-left:40px; height:38px; font-size:14px }
+.donation-quick-panel .donate-btn { flex:0 0 92px; min-width:84px; height:40px; font-size:14px; border-radius:8px }
+
+.donation-quick-btn .quick-toggle { padding:8px 10px; border-radius:10px; font-size:14px }
+.donation-quick-btn .quick-toggle .quick-toggle-icon { width:16px; height:16px }
+
+/* reduce visual noise */
+.donation-quick-panel, .donation-quick-btn .quick-toggle { box-shadow: 0 6px 14px rgba(0,0,0,0.06) }
+
+@media (max-width:420px){
+  /* Keep the panel narrower on very small screens but preserve desktop layout
+    so styles look consistent across devices. */
+  .donation-quick-panel { width: 94vw }
+  .donation-quick-panel .preset-amount { font-size:12px; padding:6px }
+  /* Keep the donate button size similar to desktop to maintain visual parity */
+  .donation-quick-panel .donate-btn { flex: 0 0 92px; }
+  /* Keep types centered and separators visible on small screens */
+  .donation-quick-panel .preset-amounts.types{ overflow-x:visible; }
+  .donation-quick-panel .currency-input .currency-symbol{ left:10px; right:auto; }
+  .donation-quick-panel .currency-input .amount-input{ padding-left:12px; padding-right:44px }
+}

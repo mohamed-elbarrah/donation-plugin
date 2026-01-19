@@ -1,0 +1,262 @@
+/* Donation App — Categories grid & card styles */
+.donation-categories-grid {
+  display: grid;
+  grid-gap: 8px;
+  margin: 0 -4px;
+}
+.donation-categories-grid.columns-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+.donation-categories-grid.columns-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.donation-categories-grid.columns-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (max-width: 900px) {
+  .donation-categories-grid.columns-4,
+  .donation-categories-grid.columns-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .donation-categories-grid { grid-template-columns: 1fr; }
+}
+
+.donation-category-card {
+  overflow: hidden;
+  border-radius: 12px;
+  position: relative;
+  height: 170px;
+  box-shadow: 0 6px 18px rgba(41,77,103,0.06);
+  background: var(--donation-surface);
+}
+.donation-category-link {
+  display: block;
+  color: inherit;
+  height: 100%;
+  text-decoration: none;
+}
+.donation-category-image-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.donation-category-image-wrap img.donation-category-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform-origin: center;
+}
+.donation-category-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, var(--donation-white), var(--donation-surface));
+}
+
+/* gradient overlay to match look */
+.donation-category-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60%;
+  background: linear-gradient(180deg, rgba(41,77,103,0.00) 0%, rgba(34,60,78,0.86) 100%);
+  pointer-events: none;
+}
+
+.donation-category-body {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  color: var(--donation-white);
+  z-index: 2;
+  text-align: right;
+}
+.donation-category-title {
+  font-size: 18px;
+  line-height: 1.1;
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  color: var(--donation-white);
+}
+.donation-category-desc {
+  font-size: 13px;
+  opacity: 0.92;
+}
+
+/* left small circular arrow similar to image */
+.donation-category-card .donation-cat-arrow {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.06);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.donation-cat-arrow svg { width: 14px; height: 14px; fill: var(--donation-white); opacity: .95 }
+
+/* RTL adjustments (Arabic) — ensure title right aligned */
+html[dir="rtl"] .donation-category-body { right: 18px; left: auto; }
+
+/* small tweaks for product list view */
+.donation-products-grid.columns-4 { display: grid; grid-template-columns: repeat(4,1fr); gap:20px }
+.donation-products-list .donation-card { border-radius: 10px; overflow: hidden }
+
+/* Accessibility focus */
+.donation-category-link:focus { outline: 3px solid rgba(255,255,255,0.12); outline-offset: 2px }
+
+/* Projects filter UI improvements */
+.donation-projects-filters{ display:flex; align-items:center; gap:12px; justify-content:flex-end; margin-bottom:18px; position:relative }
+.donation-filter-toggle{ background:var(--donation-white); border:1px solid #e6e6e6; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700 }
+
+/* Popup panel positioned relative to the filter container */
+.donation-filter-panel{
+  display:none;
+  position:absolute;
+  top:calc(100% + 8px);
+  width: min(720px, 96vw);
+  max-width:720px;
+  background:var(--donation-white);
+  border-radius:12px;
+  box-shadow:0 18px 40px rgba(7,30,22,0.12);
+  padding:10px 12px;
+  z-index:1200;
+  transition:opacity 180ms ease, transform 180ms ease;
+  opacity:0; transform:translateY(-6px);
+}
+.donation-filter-panel.is-open{ display:block; opacity:1; transform:translateY(0); }
+
+.donation-filter-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 10px;
+  align-items:center;
+  justify-content:flex-start;
+}
+/* make each label size to content so chips don't stretch across the row */
+.donation-filter-grid .donation-filter-item{ flex: 0 0 auto }
+@media (max-width:900px){ .donation-filter-grid{ gap:10px } }
+@media (max-width:520px){ .donation-filter-grid{ gap:8px; justify-content:stretch } .donation-filter-grid .donation-filter-item{ width:100% } }
+
+.donation-filter-item{ display:inline-flex; align-items:center; gap:6px; }
+.donation-filter-item .filter-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:5px 9px;
+  border-radius:999px;
+  border:1px solid rgba(18,43,34,0.06);
+  background: linear-gradient(180deg,var(--donation-white),var(--donation-surface));
+  color:var(--donation-blue);
+  cursor:pointer;
+  width:auto;
+  box-sizing:border-box;
+  font-weight:600;
+  font-size:13px;
+  transition:box-shadow 140ms ease, background 140ms ease;
+}
+.donation-filter-item .filter-chip:hover{ box-shadow:0 8px 18px rgba(9,30,22,0.06) }
+
+/* visually custom checkbox inside the chip */
+.donation-filter-item .filter-chip input[type="checkbox"]{
+  -webkit-appearance:none;
+  appearance:none;
+  width:18px;
+  height:18px;
+  flex:0 0 18px;
+  margin:0;
+  border-radius:4px;
+  border:1.6px solid rgba(12,65,44,0.12);
+  background:transparent;
+  display:inline-block;
+  transition:background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+.donation-filter-item .filter-chip input[type="checkbox"]:hover{ transform:scale(1.04) }
+.donation-filter-item .filter-chip input[type="checkbox"]:checked{ background:linear-gradient(180deg,var(--donation-gold), #A68E65); border-color:transparent; }
+.donation-filter-item .filter-chip input[type="checkbox"]:checked{ background-repeat:no-repeat; background-position:center; background-size:60%; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'><path d='M6.1 11.2L2.4 7.5 1 8.9l5.1 5.1L15 5.1 13.6 3.7z'/></svg>"); }
+
+/* ensure the checkbox visually sits before the text (RTL-aware) */
+.donation-filter-item .filter-chip{ direction: rtl }
+.donation-filter-item .filter-chip input[type="checkbox"]{ order:-1; margin-left:10px; margin-right:0 }
+
+.donation-filter-actions{ margin-top:8px; display:flex; gap:10px; justify-content:flex-start; align-items:center }
+.donation-filter-actions button{ padding:8px 12px; border-radius:8px; border:0; cursor:pointer; font-weight:700 }
+.donation-filter-actions #donation-filter-apply{
+  background: linear-gradient(180deg,var(--donation-gold), #A68E65);
+  color:var(--donation-white);
+  box-shadow:0 8px 20px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.donation-filter-actions #donation-filter-clear{
+  background:transparent;
+  border:1px solid rgba(18,43,34,0.08);
+  color:rgba(12,38,30,0.9);
+}
+
+/* subtle note text alignment for RTL */
+.donation-filter-note{ font-size:13px; color:#6b7b7b; margin-right:8px; margin-left:0 }
+
+.donation-filter-note{ font-size:13px; color:#6b7b7b; margin-left:8px }
+
+/* mobile: convert to bottom-sheet for better UX on small screens */
+@media (max-width:520px){
+  .donation-filter-panel{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    top:auto;
+    margin:0 auto;
+    width:100%;
+    max-width:100%;
+    border-radius:12px 12px 0 0;
+    padding:12px 12px 14px;
+    transform:translateY(100%);
+    transition:transform 220ms cubic-bezier(.2,.9,.2,1), opacity 180ms ease;
+    box-shadow:0 -18px 40px rgba(7,30,22,0.14);
+    max-height:84vh;
+    overflow:auto;
+    display:block;
+    opacity:0;
+  }
+  .donation-filter-panel.is-open{ opacity:1; transform:translateY(0); }
+
+  /* small handle so users know it's draggable/closable */
+  .donation-filter-panel::before{
+    content: '';
+    display:block;
+    width:42px;
+    height:4px;
+    background:rgba(0,0,0,0.06);
+    border-radius:3px;
+    margin:6px auto 10px;
+  }
+
+  .donation-filter-grid{ gap:8px 8px; justify-content:stretch }
+  /* two items per row on small screens */
+  .donation-filter-grid .donation-filter-item{ width:calc(50% - 8px); flex:0 0 calc(50% - 8px) }
+
+  .donation-filter-actions{ flex-direction:column-reverse; gap:8px; align-items:stretch; margin-top:8px }
+  .donation-filter-actions button{ width:100% }
+}
+
+/* Mobile: make chips stretch full width and space label/checkbox */
+@media (max-width:520px){
+  .donation-filter-item{ padding:0 8px; }
+  .donation-filter-item .filter-chip{
+    width:100%;
+    padding:10px 12px;
+    font-size:15px;
+    justify-content:space-between;
+  }
+  .donation-filter-item .filter-chip input[type="checkbox"]{ order:1; margin-left:0; margin-right:8px }
+}

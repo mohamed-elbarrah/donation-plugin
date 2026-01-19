@@ -1,0 +1,14 @@
+/* Donation App - central color variables (designer palette) */
+:root{
+  --donation-white: #FFFFFF;
+  --donation-gold: #B7A180;
+  --donation-blue: #294D67;
+  --donation-surface: #F9F7F3;
+  --donation-border: #f0f0f0;
+  --donation-text: #222222;
+}
+
+/* Helper tokens used across plugin styles */
+.donation-app, .donation-cards-root {
+  color: var(--donation-text);
+}

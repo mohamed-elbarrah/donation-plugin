@@ -1,0 +1,627 @@
+/* Donation cards main stylesheet (LTR + RTL overrides) */
+
+.donation-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+  padding: 18px 0;
+}
+
+/* Allow explicit control via `.donation-grid.columns-{n}` on desktop */
+.donation-grid.columns-1 { grid-template-columns: 1fr; }
+.donation-grid.columns-2 { grid-template-columns: repeat(2, 1fr); }
+.donation-grid.columns-3 { grid-template-columns: repeat(3, 1fr); }
+.donation-grid.columns-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 900px) {
+  /* collapse to two columns on tablets for any columns >=2 */
+  .donation-grid.columns-4,
+  .donation-grid.columns-3,
+  .donation-grid.columns-2 { grid-template-columns: repeat(2, 1fr); }
+  .donation-grid.columns-1 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  /* single column on narrow screens */
+  .donation-grid.columns-4,
+  .donation-grid.columns-3,
+  .donation-grid.columns-2,
+  .donation-grid.columns-1 { grid-template-columns: 1fr; }
+}
+
+/* Cards grid used by shortcodes: 4 columns desktop, 2 tablet, 1 mobile */
+.donation-cards-grid,
+.donation-products-grid{
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 900px) {
+  .donation-cards-grid,
+  .donation-products-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 520px) {
+  .donation-cards-grid,
+  .donation-products-grid { grid-template-columns: 1fr; }
+}
+
+/* Override theme/product grid gaps when using data-products to remove spacing */
+[data-products] {
+  --grid-columns-gap: 0px !important;
+  --grid-rows-gap: 0px !important;
+}
+
+.donation-card{
+  background: var(--donation-white);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+  font-family: inherit; /* use the site's default font */
+}
+
+.card-header{
+  position: relative;
+  height: 250px; /* requested height */
+  overflow: hidden;
+  background: var(--donation-surface);
+}
+
+/* Ensure any wrapped or WooCommerce-generated images fill the header */
+.card-header img, .card-header .wp-post-image, .card-header a img {
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  display:block !important;
+}
+
+.donation-badge{
+  position:absolute;
+  top:12px;
+  right:12px;
+  background:var(--donation-white);
+  color:var(--donation-blue);
+  padding:6px 10px;
+  border-radius:10px;
+  font-weight:700;
+  font-size:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  max-width:48%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.progress-section{
+  display:flex;
+  justify-content:flex-end;
+  padding:6px 10px 0;
+}
+.progress-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  /* keep progress pill using the original green accent for familiarity */
+  background: linear-gradient(180deg,#1f8f59,#17a05e);
+  color: #fff;
+  border:1px solid var(--donation-border);
+  border-radius:14px;
+  font-weight:700;
+  font-size:12px;
+  box-shadow:0 6px 16px rgba(31,143,89,0.12);
+  min-width:44px;
+  text-align:center;
+}
+
+/* Progress bar (0-100%) */
+.progress-bar-track{
+  background: linear-gradient(180deg, var(--donation-white), var(--donation-surface));
+  height:16px;
+  overflow:hidden;
+  position:relative;
+}
+.progress-bar-fill{
+  /* restore campaign progress gradient (green) for cards */
+  /* background: linear-gradient(90deg,#1f8f59,#17a05e); */
+  background: linear-gradient(90deg,#90d4b3,#00b55e);
+  height:100%;
+  width:0%;
+  transition:width 600ms ease;
+  position:relative; /* allow label positioning inside the fill */
+}
+.progress-bar-track::after{
+  content:'';
+  position:absolute;
+  right:0; left:0; top:0; bottom:0;
+}
+
+/* Circular progress styles */
+.progress-wrapper{ display:flex; gap:8px; align-items:center; padding:6px 0 }
+.circular-progress{ position:relative; width:72px; height:72px; flex:0 0 72px }
+.progress-ring{ display:block }
+.ring-bg{ stroke:#eef6f2 }
+.ring-fill{ stroke:#1f8f59; transform: rotate(-90deg); transform-origin: 36px 36px; stroke-linecap:round }
+.circular-progress.glow-pulse .ring-fill{ filter: drop-shadow(0 0 8px rgba(31,143,89,0.32)); }
+.progress-center{ position:absolute; left:0; top:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center }
+.progress-percentage{ font-weight:800; color:#122; font-size:14px; }
+
+/* breathing animation for the percentage */
+.progress-percentage.breath{ animation: breath 900ms ease-in-out forwards }
+@keyframes breath{ 0%{ transform:scale(1) } 50%{ transform:scale(1.06) } 100%{ transform:scale(1) } }
+
+/* Checkmark animation */
+.collected-check{ margin-inline-start:6px; vertical-align:middle; color:var(--donation-gold) }
+.collected-check path{ stroke: var(--donation-gold); stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round }
+
+/* Shimmer effect for amount */
+.shimmer-amount{ position:relative; overflow:hidden }
+.shimmer-amount::before{ content:''; position:absolute; left:-120%; top:0; height:100%; width:50%; background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 50%, rgba(255,255,255,0) 100%); transform:skewX(-20deg); pointer-events:none }
+.shimmer-amount.shimmer-active::before{ animation: shimmer 1.6s ease-in-out forwards }
+
+/* Allow shimmering the whole collected box */
+.amount-box.collected{ position:relative; overflow:visible }
+.amount-box.collected::before{ content:''; position:absolute; left:-120%; top:0; height:100%; width:50%; background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%); transform:skewX(-20deg); pointer-events:none; opacity:0 }
+.amount-box.collected.shimmer-active::before{ animation: shimmer 1.6s ease-in-out forwards; opacity:1 }
+
+/* Shimmer overlay on progress fill */
+.progress-bar-fill{ position:relative; overflow:hidden }
+.progress-bar-fill::after{ content:''; position:absolute; left:-120%; top:0; height:100%; width:40%; background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%); transform:skewX(-20deg); pointer-events:none; opacity:0 }
+.progress-bar-fill.shimmer-active::after{ animation: shimmer 1.6s ease-in-out forwards; opacity:1 }
+@keyframes shimmer{ 0%{ left:-120% } 100%{ left:220% } }
+
+/* label shown inside the progress track */
+.progress-bar-fill .progress-bar-label{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  background:transparent;
+  color:#fff;
+  padding:0 4px;
+  font-weight:700;
+  font-size:12px;
+  z-index:2;
+  pointer-events:none;
+  white-space:nowrap;
+}
+
+/* If fill is too small, keep label visible by nudging it inside track (best-effort) */
+.progress-bar-track .progress-bar-label{
+  color:#ffffff;
+  width: 100%;
+  text-align: left;
+}
+
+.card-body{
+  padding:10px 12px 12px;
+}
+
+.card-top-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.share-icon{ color:#444; flex:0 0 auto; }
+
+.title-wrap{ flex:1; text-align: right; }
+
+.card-title{ margin:0; font-size:15px; font-weight:800; color:#122; font-family: inherit; }
+
+.case-number{ font-size:13px; color:#7d8b8b; margin-top:4px; }
+
+.location-badge-inline{
+  margin-top: 5px ;
+  font-size:13px;
+  color:#5b6b6b;
+  flex:0 0 auto;
+}
+
+/* Row inside the title containing small inline badges (location, target, etc.) */
+.title-meta-row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-top:6px;
+  justify-content:space-between; /* push first item to start (right in RTL) and second to end (left in RTL) */
+  width:100%;
+}
+
+.target-badge-inline{
+  font-size:13px;
+  /* match location-badge-inline color */
+  color:#5b6b6b;
+  background:transparent;
+  padding:0 4px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  flex:0 0 auto;
+}
+
+/* Ensure the numeric amount and currency output by wc_price() inherit this style */
+.target-badge-inline .target-value,
+.target-badge-inline .woocommerce-Price-amount,
+.target-badge-inline .woocommerce-Price-amount bdi,
+.target-badge-inline .woocommerce-Price-currencySymbol{
+  color: inherit;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* Animated target icon */
+.target-icon{ display:inline-flex; align-items:center; justify-content:center; color:#d94b4b; width:16px; height:16px }
+.target-icon svg{ width:16px; height:16px; display:block }
+.target-icon .pulse{ transform-origin:12px 12px; opacity:0.9; stroke-width:1.2 }
+.target-icon .ring{ transform-origin:12px 12px; stroke-width:1.6 }
+.target-icon .core{ fill:currentColor }
+
+@keyframes target-pulse {
+  0% { transform: scale(0.9); opacity:0.9 }
+  60% { transform: scale(1.5); opacity:0.25 }
+  100% { transform: scale(1.8); opacity:0 }
+}
+.target-icon .pulse{ animation: target-pulse 1400ms cubic-bezier(.2,.9,.2,1) infinite }
+
+@media (prefers-reduced-motion: reduce){
+  .target-icon .pulse{ animation: none }
+}
+
+/* subtle up/down float for the location pin icon to draw attention */
+.location-icon{ display:inline-block; vertical-align:middle; transform-origin:center; animation:location-float 2.2s ease-in-out infinite; color:inherit }
+@keyframes location-float{
+  0%{ transform:translateY(0) }
+  50%{ transform:translateY(-6px) }
+  100%{ transform:translateY(0) }
+}
+
+/* respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .location-icon{ animation: none !important; }
+}
+
+.amounts-row{ display:flex; gap:8px; margin:12px 0; }
+.amount-box{ flex:1; background:var(--donation-surface); padding:6px; border-radius:8px; text-align:center; }
+.amount-label{ color:var(--donation-gold); font-weight:700; margin-bottom:4px; }
+.amount-value{ font-weight:600; color:#122; font-size:15px }
+
+.card-actions{ display:flex; gap:8px; align-items:stretch; --action-height:44px }
+
+/* Preset donation options */
+.preset-amounts{ display:flex; gap:8px; margin:8px 0 6px; flex-wrap:wrap; width:100%; box-sizing:border-box; align-items:center }
+.donation-amount-title{ font-size:14px; font-weight:800; color:#122; margin:8px 0 6px; text-align:right }
+.preset-amount{
+  background: transparent;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  color: #122;
+  font-weight: 700;
+  padding: 6px 10px;
+  width: auto;
+  box-sizing: border-box;
+}
+.preset-side.preset-left,
+.preset-side.preset-right{
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width:28px; /* ensure symbol has space on small screens */
+  padding:0 6px;
+  justify-content:center;
+}
+.preset-side .preset-currency{ font-size:20px; color:#1f8f59; font-weight:500; line-height:1; display:inline-block }
+.preset-value{ font-size:14px; flex:1 1 auto; text-align:center; padding:0 6px }
+.preset-side .preset-check{ color:#17a05e; font-weight:800; font-size:12px; display:none }
+.preset-side .preset-currency{ font-size:20px; color:var(--donation-gold); font-weight:500 }
+.preset-side .preset-check{ color:var(--donation-gold); font-weight:800; font-size:12px; display:none }
+
+/* Show right side (check) only when active, no reserved space when hidden */
+.preset-amount.active{
+  background: linear-gradient(180deg, var(--donation-blue) 0%, #223f53 100%);
+  border-color: transparent;
+  color: var(--donation-white);
+  box-shadow: 0 8px 20px rgba(41,77,103,0.08);
+}
+.preset-amount.active .preset-side.preset-right .preset-check{ display:inline-block }
+.preset-amount.active .preset-check{ display:block; color:var(--donation-white) }
+.preset-amount.active .preset-side .preset-currency{ color:var(--donation-white) }
+
+/* Make presets behave like mobile on all screen sizes */
+.preset-amounts{ gap:8px; flex-wrap:wrap; justify-content:flex-start }
+.preset-amount{ padding:6px 10px; font-size:13px; flex:1 1 auto; min-width:56px }
+
+/* Custom options row (shown when 'Other' selected) */
+/* custom options removed - users type into input when 'Other' is selected */
+
+/* Ensure cart, amount input and donate CTA share same height */
+.card-actions > *{  box-sizing:border-box; display:flex; align-items:center; justify-content:center }
+
+/* allow input to grow and donate button to remain compact */
+.card-actions .currency-input{ position:relative; flex:1 1 auto; min-width:0 }
+.card-actions .currency-input .amount-input{ flex:1 1 auto; width:auto }
+
+/* position the currency symbol inside the input area for card actions */
+.card-actions .currency-input .currency-symbol{ position:absolute; left:12px; top:50%; transform:translateY(-50%); pointer-events:none; display:inline-flex; align-items:center; justify-content:center; padding:0 8px }
+.card-actions .currency-input .amount-input{ padding-left:48px }
+
+.cart-btn{ background:var(--donation-white); border:1px solid #e9eeea; padding:0; display:flex; align-items:center; justify-content:center; border-radius:8px; flex:0 0 auto; width:48px; height:var(--action-height); }
+.cart-btn svg{ display:block; width:18px; height:18px; color:var(--donation-gold) }
+
+.donate-btn{
+  /* CTA: use deep-blue vertical gradient (slightly darker top → lighter bottom)
+     Main color family: deep blue #294D67 */
+  background: linear-gradient(180deg, hsl(205 43% 23%) 0%, hsl(205 43% 33%) 100%);
+  color: var(--donation-white);
+  padding: 0 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 800;
+  flex: 0 0 110px;
+  min-width: 88px;
+  text-align: center;
+  height: var(--action-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 220ms ease, transform 140ms ease, box-shadow 140ms ease, opacity 120ms ease;
+  box-shadow: 0 6px 14px rgba(41,77,103,0.06);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.donate-btn:hover{
+  /* hover: same color family, slightly richer/darker (~5-8% L reduction) */
+  background: linear-gradient(180deg, hsl(205 43% 20%) 0%, hsl(205 43% 30%) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(41,77,103,0.08);
+  opacity: 0.98;
+}
+.donate-btn:active{
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(41,77,103,0.06);
+  filter: brightness(0.985);
+}
+.donate-btn:focus{
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(41,77,103,0.08);
+}
+.amount-btn{ display:none }
+
+/* Custom amount input styles: remove native number spinners and improve spacing */
+/* amount input sizing and spinner removal */
+.amount-input{
+  -moz-appearance:textfield;
+  appearance:textfield;
+  padding:8px 10px;
+  border:1px solid var(--donation-border);
+  border-radius:8px;
+  min-width:80px;
+  height: var(--action-height);
+  text-align:center;
+  font-size:15px;
+  color:#122;
+  background:var(--donation-white);
+  box-sizing:border-box;
+  flex: 0 0 140px; /* wider input */
+  width:140px;
+}
+
+/* Make amount input placeholder smaller and lighter so it doesn't overpower the symbol */
+.amount-input::placeholder{ font-size:13px; color:rgba(60,70,75,0.45); }
+
+/* Also target donation-amount-input used on single product cards */
+input[type="number"].donation-amount-input::placeholder{ font-size:13px; color:rgba(60,70,75,0.45); }
+
+/* disabled input visual */
+.amount-input[disabled], .amount-input:disabled{
+  background:#f6f8f7;
+  color:#6f7f7a;
+  cursor:not-allowed;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,0.01);
+}
+
+/* Remove webkit spinners */
+.amount-input::-webkit-outer-spin-button,
+.amount-input::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+  display:none; /* hide native spinners on WebKit */
+}
+
+/* Also target donation-amount-input used on single product */
+input[type="number"].donation-amount-input::-webkit-outer-spin-button,
+input[type="number"].donation-amount-input::-webkit-inner-spin-button{
+  -webkit-appearance:none; display:none; margin:0;
+}
+
+/* Firefox: remove number input arrows */
+input[type="number"], input[type="number"].amount-input, input[type="number"].donation-amount-input { -moz-appearance:textfield; appearance:textfield }
+
+/* Edge/IE: remove clear/spinner buttons */
+input[type="number"]::-ms-clear, input[type="number"]::-ms-expand { display:none; }
+
+
+
+/* Responsive adjustments for action bar */
+@media(max-width:768px){
+  .card-actions{ --action-height:40px }
+  .cart-btn{ width:40px }
+  .amount-input{ flex:0 0 120px; width:120px }
+}
+
+/* RTL: ensure input sits correctly to the left of the donate button */
+[dir="rtl"] .card-actions{ direction:rtl }
+[dir="rtl"] .amount-input{ text-align:center }
+
+@media(max-width:768px){
+  .donation-grid{ grid-template-columns:1fr }
+  .donation-badge{ max-width:60%; right:10px; top:8px }
+  .progress-section{ padding-top:6px }
+}
+
+/* Mobile: make donate CTA the last element and full width for better UX */
+@media (max-width:720px) {
+  .donation-card .card-actions {
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .donation-card .donate-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 0 auto;
+    justify-content: center;
+    padding: 12px 16px !important;
+    box-sizing: border-box;
+  }
+  .donation-card .currency-input,
+  .donation-card .cart-btn { width: 100% !important; }
+  .donation-card .currency-input .amount-input { width:100% !important; box-sizing:border-box; }
+}
+
+/* toast for add-to-cart success */
+.donation-toast{
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: env(safe-area-inset-top, 18px);
+  background: var(--donation-surface);
+  color: var(--donation-gold);
+  padding: 8px 14px;
+  border-radius: 8px;
+  box-shadow: 0 6px 14px rgba(41,77,103,0.06);
+  z-index: 99999;
+  font-weight: 800;
+  font-size: 14px;
+  text-align: center;
+  min-width: 140px;
+  border: 1px solid rgba(183,161,128,0.12);
+}
+
+@media (max-width:520px){ .donation-toast{ left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 14px) + 6px); width: calc(100% - 40px); min-width: auto; } }
+/* RTL overrides: apply when the document direction is RTL */
+[dir="rtl"] .donation-card,
+[dir="rtl"] .donation-grid { direction: rtl; }
+
+[dir="rtl"] .donation-badge {  right:5px; top: 5px;  }
+[dir="rtl"] .progress-pill { right:12px; }
+
+[dir="rtl"] .card-top-row{ display:flex; align-items:center; gap:8px }
+[dir="rtl"] .share-icon{ order:3 }
+[dir="rtl"] .title-wrap{ order:2; text-align:right; flex:1 }
+[dir="rtl"] .location-badge-inline{ order:1 }
+
+[dir="rtl"] .card-title, [dir="rtl"] .case-number, [dir="rtl"] .amount-value, [dir="rtl"] .amount-label { text-align: right; }
+
+@media(max-width:768px){
+  [dir="rtl"] .donation-badge{ right:5px; top: 5px; }
+  [dir="rtl"] .progress-pill{ right:10px }
+}
+
+/* Share modal styles */
+.share-modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  padding:24px;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .22s ease, visibility .22s;
+}
+.share-modal-overlay.is-open{ opacity:1; visibility:visible; pointer-events:auto }
+.share-modal{
+  width:100%;
+  max-width:680px;
+  background:#fff;
+  border-radius:10px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.18);
+  transform:translateY(8px) scale(.96);
+  opacity:0;
+  overflow:hidden;
+}
+.share-modal-overlay.is-open .share-modal{
+  /* trigger keyframe pop animation */
+  animation: modal-pop .34s cubic-bezier(.22,.9,.35,1) both;
+}
+
+@keyframes modal-pop{
+  0%{ transform:translateY(8px) scale(.96); opacity:0 }
+  60%{ transform:translateY(0) scale(1.02); opacity:1 }
+  100%{ transform:translateY(0) scale(1); opacity:1 }
+}
+.share-modal .modal-body{ padding:28px 34px; text-align:center }
+/* Use the same site font stack inside the modal for visual consistency */
+.share-modal,
+.share-modal .modal-body,
+.share-modal h3,
+.share-modal p,
+.share-modal .share-link-input,
+.share-modal .share-copy-btn{
+  font-family: inherit; /* match site font */
+}
+
+/* Ensure plugin wrappers inherit the site font to override any internal font stacks */
+.donation-grid,
+.donation-single-wrap,
+.donation-related-wrap,
+.donation-card{
+  font-family: inherit;
+}
+.share-modal .modal-close{ position:absolute; left:14px; top:14px; background:transparent; border:0; font-size:20px; color:#7d8b8b; cursor:pointer }
+.share-modal .share-icon-lg{ width:76px; height:76px; border-radius:50%; background:var(--donation-surface); display:inline-flex; align-items:center; justify-content:center; margin-bottom:18px }
+.share-modal h3{ margin:0 0 6px; font-size:20px; color:#122; font-weight:800 }
+.share-modal p{ margin:0 0 18px; color:#4e6160 }
+.share-modal .share-link-row{ display:flex; gap:12px; align-items:center }
+.share-modal .share-link-input{ flex:1; padding:10px 12px; border:1px solid #e6e6e6; border-radius:6px; font-size:14px; color:#122 }
+.share-modal .share-copy-btn{ background:var(--donation-gold); color:var(--donation-white); border:0; padding:10px 14px; border-radius:6px; font-weight:700; cursor:pointer; white-space:nowrap }
+.share-modal .share-socials{ display:flex; gap:12px; justify-content:center; margin-top:16px }
+.share-modal .social-btn{ width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:var(--donation-surface); color:var(--donation-gold); text-decoration:none }
+.share-modal .social-btn.facebook{ background:#1877f2; color:#fff }
+.share-modal .social-btn.twitter{ background:#1da1f2; color:#fff }
+.share-modal .social-btn.whatsapp{ background:#25d366; color:#fff }
+
+/* Responsive modal padding */
+@media(max-width:520px){
+  .share-modal{ max-width:520px }
+  .share-modal .modal-body{ padding:18px }
+  .share-modal .share-link-row{ flex-direction:column }
+  .share-modal .share-copy-btn{ width:100% }
+
+}
+
+/* "More" CTA used by shortcodes when there are additional items */
+.donation-more-wrap,
+.donation-store-more-wrap{ text-align:center; margin:18px 0 6px; }
+.donation-more-btn,
+.donation-store-more-btn{
+  display:inline-block;
+  background: linear-gradient(180deg, var(--donation-blue) 0%, #223f53 100%);
+  color:var(--donation-white);
+  padding:12px 22px;
+  border-radius:10px;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 10px 24px rgba(41,77,103,0.12);
+  transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+  font-size:15px;
+  min-width:220px;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.donation-more-btn:hover,
+.donation-store-more-btn:hover{ transform:translateY(-3px); box-shadow:0 14px 34px rgba(41,77,103,0.12); background: linear-gradient(180deg,#21384a 0%,#172e3b 100%); }
+.donation-more-btn:active,
+.donation-store-more-btn:active{ transform:translateY(-1px); }
+
+@media(max-width:520px){
+  .donation-more-btn, .donation-store-more-btn{ min-width:160px; padding:10px 18px; font-size:14px }
+}

@@ -1,0 +1,109 @@
+.woocommerce-Price-amount .woocommerce-Price-currencySymbol,
+.amount .woocommerce-Price-currencySymbol {
+  font-size: 1.35em; /* increase symbol size */
+  line-height: 1;
+  
+  display: inline-block;
+  transform: translateY(0.05em);
+}
+
+/* Slightly larger in product/card contexts */
+.donation-card .amount-value .woocommerce-Price-currencySymbol {
+  font-size: 1.35em;
+}
+
+/* Ensure totals and cart use more pronounced symbol */
+.woocommerce-cart .woocommerce-Price-amount .woocommerce-Price-currencySymbol,
+.woocommerce-checkout .woocommerce-Price-amount .woocommerce-Price-currencySymbol {
+  font-size: 1.35em;
+}
+
+/* Inline currency symbol inside custom amount input (flex layout) */
+.currency-input{
+  display:flex;
+  align-items:center;
+  height:100%;
+  box-sizing:border-box;
+  border:1px solid var(--donation-border);
+  border-radius:8px;
+  background:var(--donation-white);
+  overflow:hidden;
+  transition:box-shadow .14s ease, border-color .14s ease, transform .12s ease;
+}
+.card-actions .currency-input .currency-symbol{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--donation-blue);
+  font-weight:500;
+  font-size:18px;
+  padding:8px 10px;
+  flex:0 0 auto;
+  background: transparent !important;
+  pointer-events:none;
+  border-inline-end:1px solid rgba(0,0,0,0.04);
+}
+
+/* fallback for other contexts */
+.currency-input .currency-symbol{
+  color:#395a4e;
+}
+.currency-input .amount-input{
+  padding:8px 10px;
+  width:100%;
+  box-sizing:border-box;
+  padding-inline-start:0;
+  padding-inline-end:0;
+  border:0;
+  background:transparent;
+  outline:none;
+  text-align:center;
+  font-weight:500;
+  font-size:15px;
+  color:#122;
+  min-height:36px;
+}
+
+/* RTL: swap symbol side and visual order */
+[dir="rtl"] .currency-input .currency-symbol{ margin-inline-start:8px; margin-inline-end:0; order:2 }
+[dir="rtl"] .currency-input .amount-input{ order:1 }
+
+/* keep visual parity with action bar height */
+.card-actions .currency-input{ flex:1; align-items:center }
+.card-actions .currency-input .amount-input{ height:100%; border-radius:8px }
+
+/* Focus visuals when user interacts with the input */
+.currency-input:focus-within{ border-color:var(--donation-gold); box-shadow:0 8px 28px rgba(183,161,128,0.10); transform:translateY(-1px) }
+
+/* RTL: ensure the divider border sits on the correct side */
+[dir="rtl"] .currency-input .currency-symbol{ border-inline-end:none; border-inline-start:1px solid rgba(0,0,0,0.04) }
+
+/* Placeholder styling */
+.currency-input .amount-input::placeholder{ color:#97a09f; opacity:1 }
+
+/* When input is disabled (preset selected) make it clear and keep centered */
+.currency-input .amount-input:disabled{ text-align:center; font-weight:500; }
+
+/* Make currency symbol slightly larger for better visibility */
+.currency-input .currency-symbol{ font-size:18px; padding:8px 10px }
+
+/* Small responsive tweak: ensure comfortable hit area on mobile */
+@media(max-width:520px){
+  .currency-input .currency-symbol{ padding:8px 10px }
+  .currency-input .amount-input{ padding:8px 8px }
+}
+
+/* show pointer cursor for interactive elements inside donation cards */
+.donation-card .card-header,
+.donation-card .card-title,
+.donation-card .amounts-row,
+.donation-card .share-icon,
+.donation-card .preset-amount,
+.donation-card .donate-btn,
+.donation-card .cart-btn {
+  cursor: pointer;
+}
+
+/* keep inputs and plain text using default/text cursors */
+.donation-card .amount-input,
+.donation-card .amount-value { cursor: text; }
