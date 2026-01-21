@@ -3,7 +3,7 @@
  * Plugin Name: Donation App
  * Description: A trusted digital donation platform that connects donors with verified humanitarian cases and charitable projects. made with ♥ by Mohamed ElBarrah.
  * Author: Mohamed ElBarrah
- * Version: 1.1.8
+ * Version: 1.1.9
  */
 
 if (!defined('ABSPATH')) exit;
@@ -16,6 +16,8 @@ if (!class_exists('Donation_Campaigns')) {
         }
 
         public function init() {
+            // Load translations for the plugin (languages/*.mo)
+            load_plugin_textdomain( 'donation-app', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
             // categories shortcode (shows categories and products) — load regardless so shortcode is available
             require_once plugin_dir_path(__FILE__) . 'includes/categories.php';
@@ -25,6 +27,8 @@ if (!class_exists('Donation_Campaigns')) {
             require_once plugin_dir_path(__FILE__) . 'includes/projects.php';
             // admin settings (toggle for currency symbol, etc.)
             require_once plugin_dir_path(__FILE__) . 'includes/admin-settings.php';
+            // Zakat feature (isolated module)
+            require_once plugin_dir_path(__FILE__) . 'includes/zakat.php';
 
             if (!class_exists('WooCommerce')) return;
 
@@ -134,11 +138,10 @@ if (!class_exists('Donation_Campaigns')) {
     }
 }
 
+// Instantiate the plugin to register hooks and load modules
 new Donation_Campaigns();
-// Load Zakat include if present (registers admin page, shortcode, AJAX handlers)
-if (file_exists(plugin_dir_path(__FILE__) . 'includes/zakat.php')) {
-    require_once plugin_dir_path(__FILE__) . 'includes/zakat.php';
-}
+
+
 
 // Shortcode: Display upcoming services as cards
 add_shortcode('donation_app_upcoming_services', 'donation_app_render_upcoming_services');
