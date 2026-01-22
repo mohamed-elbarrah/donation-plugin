@@ -318,7 +318,7 @@ function donation_app_runtime_ar_translations( $translated, $text, $domain ) {
             'Cancel' => 'إلغاء',
             'Invalid zakat type.' => 'نوع زكاة غير صالح.',
             'Please enter a valid amount.' => 'الرجاء إدخال مبلغ صالح.',
-            'Donation Zakat' => 'زكاة التبرعات',
+            'Donation Zakat' => 'أداء الزكاة',
             'Zakat Settings' => 'إعدادات الزكاة',
             'Configure nisab and rates for Zakat types.' => 'حوّل وحدد النصاب ونسب الزكاة لأنواعها.',
             'Nisab' => 'النصاب',

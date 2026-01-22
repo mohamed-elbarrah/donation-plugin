@@ -1,13 +1,13 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-if (!function_exists('donation_render_card_standard')) {
+if (!function_exists('donation_render_card_wakf')) {
     /**
      * Render a donation product card for a given post ID.
      * Mirrors the markup used by the main campaigns shortcode.
      * @param int $post_id
      */
-    function donation_render_card_standard($post_id) {
+    function donation_render_card_wakf($post_id) {
         $post = get_post($post_id);
         if (!$post) return;
         $product = wc_get_product($post_id);
@@ -24,7 +24,8 @@ if (!function_exists('donation_render_card_standard')) {
 
         // Mode-aware labels (تبرع vs وقف)
         $collected_label = ($donation_mode === 'donation') ? 'التبرعات الحالية' : 'إجمالي الوقف';
-        $amount_title = ($donation_mode === 'donation') ? 'مبلغ التبرع' : 'اختر مبلغ المساهمة';
+        // For wakf template use a clearer chooser title
+        $amount_title = ($donation_mode === 'donation') ? 'مبلغ التبرع' : 'حدد الخيار المناسب';
         $cta_label = ($donation_mode === 'donation') ? 'تبرع الآن' : 'أضف للسلة';
 
         // Determine progress message texts (main + optional sub) so we can render
@@ -130,16 +131,26 @@ if (!function_exists('donation_render_card_standard')) {
 
                 </div>
 
-                <div class="amounts-row">
-                    <div class="amount-box collected">
-                        <div class="amount-label"><?php echo esc_html( $collected_label ); ?>
-                        </div>
-                            <div class="amount-value shimmer-amount"><?php echo wc_price($collected); ?></div>
-                    </div>
-                    <div class="amount-box remaining">
-                        <div class="amount-label">المبلغ المتبقي</div>
-                        <div class="amount-value"><?php echo wc_price($remaining); ?></div>
-                    </div>
+                <?php
+                // For wakf cards we don't show the collected/total box. Instead show a
+                // brief "التفاصيل" section with a truncated product description to
+                // keep the card compact and informative.
+                $short_desc = '';
+                if ($product && method_exists($product, 'get_short_description')) {
+                    $short_desc = $product->get_short_description();
+                }
+                if (empty($short_desc)) {
+                    $short_desc = get_post_field('post_excerpt', $post_id);
+                }
+                if (empty($short_desc)) {
+                    $content = get_post_field('post_content', $post_id);
+                    $short_desc = wp_trim_words( wp_strip_all_tags( $content ), 25, '...' );
+                }
+                ?>
+
+                <div class="wakf-details">
+                    <h4 class="wakf-details-title">التفاصيل</h4>
+                    <div class="wakf-details-body"><?php echo wp_kses_post( $short_desc ); ?></div>
                 </div>
 
                 <div class="donation-amount-title"><?php echo esc_html( $amount_title ); ?></div>
@@ -210,6 +221,11 @@ if (!function_exists('donation_render_card_standard')) {
                     .donation-card .card-actions { display:flex; gap:10px; align-items:center; }
                     .donation-card .donate-btn { white-space:nowrap; font-size:14px; padding:8px 12px; border-radius:8px; }
                     .donation-card .amount-input{ width:100px; }
+                    /* Wakf details compact styling */
+                    .donation-card .wakf-details { margin:8px 0 6px; padding:0 4px; }
+                    .donation-card .wakf-details-title { margin:0 0 4px; font-size:14px; font-weight:700; color:var(--donation-primary,#0b5345); }
+                    .donation-card .wakf-details-body { margin:0; font-size:13px; color:var(--donation-text,#333); line-height:1.4; direction:rtl; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; max-height:calc(1.4em * 2); }
+                    .donation-card .donation-amount-title { margin-top:8px; margin-bottom:6px; font-size:14px; font-weight:600; }
                     @media (max-width:720px){ .donation-card .card-actions{ flex-direction:column; align-items:stretch; } .donation-card .amount-input{ width:100%; } }
                     .donation-card .disabled { pointer-events:none; opacity:0.6; filter:grayscale(20%); }
                     .donation-card .progress-message-line { text-align:center; margin-top:0; font-weight:600; direction:rtl; }

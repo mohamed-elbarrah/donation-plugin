@@ -7,6 +7,8 @@ add_shortcode('donation_campaigns', function ($atts) {
         'limit' => 4,
         // mode: can be 'donation' or 'wakf' (or Arabic 'تبرع' / 'وقف')
         'mode' => '',
+        // optional category slugs (comma-separated) to restrict results to product categories
+        'category' => '',
     ], $atts);
 
     // Build meta_query: always require _donation_target, optionally filter by _donation_mode
@@ -41,11 +43,26 @@ add_shortcode('donation_campaigns', function ($atts) {
         }
     }
 
-    $query = new WP_Query([
+    $base_args = [
         'post_type' => 'product',
         'posts_per_page' => intval($atts['limit']),
         'meta_query' => $meta_query,
-    ]);
+    ];
+
+    // category attribute support (comma-separated slugs)
+    $cat_raw = trim((string) $atts['category']);
+    if ($cat_raw !== '') {
+        $parts = array_filter(array_map('trim', explode(',', $cat_raw)));
+        if (!empty($parts)) {
+            $base_args['tax_query'] = [[
+                'taxonomy' => 'product_cat',
+                'field' => 'slug',
+                'terms' => array_values($parts),
+            ]];
+        }
+    }
+
+    $query = new WP_Query($base_args);
     // exclude any products marked as quick donation
     $quick_args = [
         'post_type' => 'product',
@@ -60,12 +77,8 @@ add_shortcode('donation_campaigns', function ($atts) {
     ];
     $quick_ids = get_posts($quick_args);
     if (!empty($quick_ids)) {
-        $q_args = [
-            'post_type' => 'product',
-            'posts_per_page' => intval($atts['limit']),
-            'meta_query' => $meta_query,
-            'post__not_in' => $quick_ids,
-        ];
+        $q_args = $base_args;
+        $q_args['post__not_in'] = $quick_ids;
         $query = new WP_Query($q_args);
     }
 
@@ -451,16 +464,26 @@ add_shortcode('donation_campaigns', function ($atts) {
             'per_page' => -1,
             'columns' => 3,
             'show_filter' => 'true',
+            // allow explicit category(s) via shortcode attribute (comma-separated slugs)
+            'category' => '',
+            // optional mode filter like 'donation' or 'wakf' (or Arabic labels)
+            'mode' => '',
         ], $atts, 'donation_store');
 
         $show_filter = filter_var($atts['show_filter'], FILTER_VALIDATE_BOOLEAN);
 
-        // read selected categories from query param `donation_cat` (comma-separated slugs)
+        // selected categories: shortcode `category` attribute overrides query param `donation_cat`
         $selected = [];
-        if (!empty($_GET['donation_cat'])) {
-            $raw = sanitize_text_field(wp_unslash($_GET['donation_cat']));
-            $parts = array_filter(array_map('trim', explode(',', $raw)));
+        $cat_attr = trim((string) $atts['category']);
+        if ($cat_attr !== '') {
+            $parts = array_filter(array_map('trim', explode(',', $cat_attr)));
             if (!empty($parts)) $selected = $parts;
+        } else {
+            if (!empty($_GET['donation_cat'])) {
+                $raw = sanitize_text_field(wp_unslash($_GET['donation_cat']));
+                $parts = array_filter(array_map('trim', explode(',', $raw)));
+                if (!empty($parts)) $selected = $parts;
+            }
         }
 
         // fetch product categories for the filter
@@ -474,6 +497,27 @@ add_shortcode('donation_campaigns', function ($atts) {
             'post_type' => 'product',
             'posts_per_page' => intval($atts['per_page']),
         ];
+
+        // optional mode filter passed via shortcode attribute
+        $mode_attr = trim((string) $atts['mode']);
+        if ($mode_attr !== '') {
+            $partsm = array_filter(array_map('trim', explode(',', $mode_attr)));
+            $mapm = [
+                'تبرع' => 'donation',
+                'وقف' => 'wakf',
+                'donation' => 'donation',
+                'wakf' => 'wakf',
+            ];
+            $mappedm = [];
+            foreach ($partsm as $p) { if (isset($mapm[$p])) $mappedm[] = $mapm[$p]; }
+            if (!empty($mappedm)) {
+                $query_args['meta_query'] = [[
+                    'key' => '_donation_mode',
+                    'value' => array_values(array_unique($mappedm)),
+                    'compare' => 'IN',
+                ]];
+            }
+        }
         // exclude quick-donation products from this store shortcode
         $quick_args2 = [
             'post_type' => 'product',

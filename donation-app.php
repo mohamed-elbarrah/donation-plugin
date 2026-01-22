@@ -3,7 +3,7 @@
  * Plugin Name: Donation App
  * Description: A trusted digital donation platform that connects donors with verified humanitarian cases and charitable projects. made with ♥ by Mohamed ElBarrah.
  * Author: Mohamed ElBarrah
- * Version: 1.1.9
+ * Version: 1.2.1
  */
 
 if (!defined('ABSPATH')) exit;
@@ -21,8 +21,28 @@ if (!class_exists('Donation_Campaigns')) {
 
             // categories shortcode (shows categories and products) — load regardless so shortcode is available
             require_once plugin_dir_path(__FILE__) . 'includes/categories.php';
-            // card template used by lists
+            // card template used by lists (standard)
             require_once plugin_dir_path(__FILE__) . 'includes/card-template.php';
+            // wakf-specific card template
+            require_once plugin_dir_path(__FILE__) . 'includes/card-waqf.php';
+
+            // Dispatch wrapper: call an appropriate renderer based on product mode
+            if (!function_exists('donation_render_card')) {
+                function donation_render_card($post_id) {
+                    $mode = get_post_meta($post_id, '_donation_mode', true);
+                    if (!$mode) $mode = 'wakf';
+                    if ($mode === 'wakf' && function_exists('donation_render_card_wakf')) {
+                        return donation_render_card_wakf($post_id);
+                    }
+                    if (function_exists('donation_render_card_standard')) {
+                        return donation_render_card_standard($post_id);
+                    }
+                    // fallback: try calling wakf renderer if available
+                    if (function_exists('donation_render_card_wakf')) {
+                        return donation_render_card_wakf($post_id);
+                    }
+                }
+            }
             // projects page + filter UI (shortcode)
             require_once plugin_dir_path(__FILE__) . 'includes/projects.php';
             // admin settings (toggle for currency symbol, etc.)
@@ -153,6 +173,8 @@ function donation_app_render_upcoming_services() {
             'desc' => 'برنامج يتيح لك إمكانية حساب الزكاة بأنواعها المختلفة ودفعها عبر طرق سهلة وسريعة لتصل إلى مستحقيها.',
             'icon' => '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#667eea"/><stop offset="100%" stop-color="#764ba2"/></linearGradient></defs><circle cx="16" cy="16" r="16" fill="url(#grad1)"/><path d="M8 20h16v4H8z" fill="white" opacity="0.9"/><path d="M10 20v-8l6-3 6 3v8" fill="white" opacity="0.8"/><circle cx="16" cy="16" r="2" fill="white"/></svg>',
             'badge_color' => '#6C63FF',
+            // link to the live Zakat page (slug: أداء-الزكاة)
+            'link' => esc_url_raw( home_url( '/أداء-الزكاة/' ) ),
         ],
         [
             'title' => 'الإهداء',
@@ -234,14 +256,23 @@ function donation_app_render_upcoming_services() {
     </style>
     <div class="donation-app-services">
         <?php foreach ($services as $service): ?>
+            <?php $service_link = isset( $service['link'] ) ? esc_url( $service['link'] ) : ''; ?>
+            <?php if ( $service_link ): ?>
+                <a href="<?php echo $service_link; ?>" style="display:block;color:inherit;text-decoration:none;">
+            <?php endif; ?>
+
             <div class="donation-app-card">
                 <div class="donation-app-card-header">
                     <span class="donation-app-icon"><?php echo $service['icon']; ?></span>
-                    <span class="donation-app-badge" style="background: <?php echo $service['badge_color']; ?>;">قريبًا</span>
+                    <span class="donation-app-badge" style="background: <?php echo $service['badge_color']; ?>;"><?php echo $service_link ? 'مضافة حديثا' : 'قريبًا'; ?></span>
                 </div>
                 <div class="donation-app-title"><?php echo $service['title']; ?></div>
                 <div class="donation-app-desc"><?php echo $service['desc']; ?></div>
             </div>
+
+            <?php if ( $service_link ): ?>
+                </a>
+            <?php endif; ?>
         <?php endforeach; ?>
     </div>
     <?php
