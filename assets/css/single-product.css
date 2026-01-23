@@ -13,7 +13,7 @@
 .donation-presets .preset-amount.active{background:var(--donation-gold);color:var(--donation-white);border-color:var(--donation-gold)}
 .donation-presets .preset-amount.active .preset-currency{color:rgba(255,255,255,.95);opacity:1}
 .donation-presets .preset-other{background:#fafafa}
-.donation-input-row{display:flex;align-items:stretch;gap:10px;margin-bottom:8px}
+.donation-input-row{display:flex;align-items:stretch;gap:10px; margin-top: 20px;}
 .donation-input-row .input-with-symbol{position:relative;flex:1 1 0;min-width:0}
 .input-with-symbol{position:relative;width:100%}
 .currency-symbol{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:inline-block;background:transparent;border:0;font-weight:800;font-size:22px;line-height:1;pointer-events:none}

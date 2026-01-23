@@ -99,12 +99,14 @@ add_action('woocommerce_single_product_summary', function () {
                         <div class="stat collected"><span class="label"><?php echo esc_html( $collected_label ); ?></span>
                             <span class="value"><span class="currency-inline"><?php echo esc_html( $currency_symbol ); ?></span><span class="stat-amount"><?php echo esc_html( number_format_i18n( $collected, $price_decimals ) ); ?></span></span>
                         </div>
+                        <?php if ($donation_mode !== 'wakf'): ?>
                         <div class="stat remaining"><span class="label">المبلغ المتبقي</span>
                             <span class="value"><span class="currency-inline"><?php echo esc_html( $currency_symbol ); ?></span><span class="stat-amount"><?php echo esc_html( number_format_i18n( $remaining, $price_decimals ) ); ?></span></span>
                         </div>
                         <div class="stat target"><span class="label">الهدف</span>
                             <span class="value"><span class="currency-inline"><?php echo esc_html( $currency_symbol ); ?></span><span class="stat-amount"><?php echo esc_html( number_format_i18n( $target, $price_decimals ) ); ?></span></span>
                         </div>
+                        <?php endif; ?>
                         <?php if ($location): ?>
                             <div class="stat location"><span class="label">الموقع</span>
                                 <span class="value">
@@ -128,7 +130,9 @@ add_action('woocommerce_single_product_summary', function () {
                     </div>
 
                     <div class="donation-amount-box">
-                                <div class="donation-presets-header"><?php echo esc_html__("اختر المبلغ", 'donation-app'); ?></div>
+                                
+                        <?php if ($donation_mode !== 'wakf'): ?>
+                            <div class="donation-presets-header"><?php echo esc_html__("اختر المبلغ", 'donation-app'); ?></div>
                         <div class="donation-presets" role="tablist">
                             <?php foreach ($presets as $i => $amt): $amt_val = floatval($amt);
                                 $btn_disabled_attr = $is_complete ? ' disabled aria-disabled="true"' : '';
@@ -141,6 +145,111 @@ add_action('woocommerce_single_product_summary', function () {
                             <?php endforeach; ?>
                             <button type="button" class="preset-amount preset-other" <?php echo $is_complete ? 'disabled aria-disabled="true"' : ''; ?>>مخصص</button>
                         </div>
+                        <?php endif; ?>
+
+                        <?php if ($donation_mode === 'wakf'):
+                            // load structured waqf options if present
+                            $waqf_options = get_post_meta($product_id, '_waqf_options', true);
+                            $waqf_presets = [];
+                            if (!empty($waqf_options) && is_array($waqf_options)) {
+                                foreach ($waqf_options as $opt) {
+                                    $label = isset($opt['label']) ? $opt['label'] : '';
+                                    $value = isset($opt['value']) ? floatval($opt['value']) : 0;
+                                    if ($value > 0) $waqf_presets[] = ['label' => $label ?: wc_price($value), 'value' => $value];
+                                }
+                            }
+                            // fallback to legacy presets
+                            if (empty($waqf_presets)) {
+                                $presets_raw = get_post_meta($product_id, '_donation_presets', true);
+                                if ($presets_raw) {
+                                    $parts = explode(',', $presets_raw);
+                                    foreach ($parts as $p) {
+                                        $n = floatval(trim($p));
+                                        if ($n > 0) $waqf_presets[] = ['label' => (string)$n, 'value' => $n];
+                                    }
+                                }
+                            }
+                            if (empty($waqf_presets)) $waqf_presets = [['label' => '10', 'value' => 10], ['label' => '50', 'value' => 50], ['label' => '100', 'value' => 100]];
+
+                            $requested_amount = null;
+                            if (isset($_REQUEST['donation_amount']) && is_numeric($_REQUEST['donation_amount'])) {
+                                $requested_amount = floatval($_REQUEST['donation_amount']);
+                            }
+                            $active_preset_index = 0;
+                            $active_is_other = false;
+                            if ($requested_amount !== null) {
+                                $found = false;
+                                foreach ($waqf_presets as $i => $opt) {
+                                    $amt = isset($opt['value']) ? floatval($opt['value']) : floatval($opt);
+                                    if (abs($amt - $requested_amount) < 0.0001) { $active_preset_index = $i; $found = true; break; }
+                                }
+                                if (!$found) $active_is_other = true;
+                            }
+                            ?>
+
+                            <div id="waqf-options-<?php echo esc_attr($product_id); ?>" class="waqf-options-wrapper">
+                                <div class="donation-amount-title">حدد الخيار المناسب</div>
+                                <div class="waqf-options" role="list">
+                                    <?php foreach ($waqf_presets as $idx => $opt):
+                                        $is_active = ($active_is_other ? false : ($idx === $active_preset_index));
+                                        $btn_disabled_attr = $is_complete ? ' disabled aria-disabled="true"' : '';
+                                        $pressed = ($is_active && !$is_complete) ? 'true' : 'false';
+                                        $amt = isset($opt['value']) ? $opt['value'] : floatval($opt);
+                                        $label = isset($opt['label']) ? $opt['label'] : (string)$amt;
+                                    ?>
+                                        <button type="button" class="waqf-option<?php echo $is_active ? ' active' : ''; ?>" data-amount="<?php echo esc_attr($amt); ?>" aria-pressed="<?php echo $pressed; ?>" <?php echo $btn_disabled_attr; ?>>
+                                            <span class="waqf-value"><?php echo esc_html($label); ?></span>
+                                        </button>
+                                    <?php endforeach; ?>
+                                    <button type="button" class="waqf-option waqf-other<?php echo $active_is_other ? ' active' : ''; ?>" data-other="1" aria-pressed="<?php echo $active_is_other ? 'true' : 'false'; ?>" <?php echo $is_complete ? 'disabled aria-disabled="true"' : ''; ?> >
+                                        <span class="waqf-value">مبلغ مخصص</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <style>
+                                #waqf-options-<?php echo esc_attr($product_id); ?> .waqf-options{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0 6px; justify-content:center; }
+                                #waqf-options-<?php echo esc_attr($product_id); ?> .waqf-option{ background: transparent; border: 1px solid #e6e6e6; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; color: #122; font-weight: 700; padding: 6px 10px; box-sizing: border-box; font-size:13px; min-width:56px; flex: 0 0 auto; white-space:nowrap; }
+                                #waqf-options-<?php echo esc_attr($product_id); ?> .waqf-option.active{ background: linear-gradient(180deg, var(--donation-blue) 0%, #223f53 100%); border-color: transparent; color: var(--donation-white); box-shadow: 0 8px 20px rgba(41,77,103,0.08); }
+                                @media (max-width:720px){ #waqf-options-<?php echo esc_attr($product_id); ?> .waqf-options{ justify-content:flex-start; } }
+                            </style>
+
+                            <script>
+                            (function(){
+                                var wrapper = document.getElementById('waqf-options-<?php echo esc_js($product_id); ?>');
+                                if(!wrapper) return;
+                                var options = Array.prototype.slice.call(wrapper.querySelectorAll('.waqf-option'));
+                                var input = document.getElementById('donation_amount_input-<?php echo esc_js($product_id); ?>');
+
+                                function clearActive(){ options.forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); }); }
+
+                                options.forEach(function(btn){
+                                    btn.addEventListener('click', function(){
+                                        if(btn.classList.contains('waqf-other')){
+                                            clearActive();
+                                            btn.classList.add('active');
+                                            btn.setAttribute('aria-pressed','true');
+                                            if(input){ input.disabled = false; input.value = ''; input.focus(); }
+                                            return;
+                                        }
+                                        var amt = btn.getAttribute('data-amount');
+                                        clearActive();
+                                        btn.classList.add('active');
+                                        btn.setAttribute('aria-pressed','true');
+                                        if(input){ input.value = (amt ? amt : ''); input.disabled = true; }
+                                    });
+                                });
+
+                                // initialize state: if an option is active, apply value
+                                var active = wrapper.querySelector('.waqf-option.active');
+                                if(active){
+                                    if(active.classList.contains('waqf-other')){ if(input) input.disabled = false; }
+                                    else { var a = active.getAttribute('data-amount'); if(input) { input.value = a; input.disabled = true; } }
+                                }
+                            })();
+                            </script>
+
+                        <?php endif; ?>
 
                         <div class="donation-input-row">
                             <?php
@@ -157,6 +266,8 @@ add_action('woocommerce_single_product_summary', function () {
                             </div>
                         </div>
                     </div>
+
+                
                 </div>
             </div>
 
