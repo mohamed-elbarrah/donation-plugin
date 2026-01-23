@@ -224,8 +224,11 @@ if (!function_exists('donation_render_card_wakf')) {
                 </div>
 
                 <style>
+                    /* Layout: pin actions to bottom so cards align despite varying content heights */
+                    .donation-card{ display:flex; flex-direction:column; height:100%; }
+                    .donation-card .card-body{ display:flex; flex-direction:column; flex:1 1 auto; }
                     /* Compact CTA so Arabic label fits on one line */
-                    .donation-card .card-actions { display:flex; gap:10px; align-items:center; }
+                    .donation-card .card-actions { margin-top:auto; display:flex; gap:10px; align-items:center; }
                     .donation-card .donate-btn { white-space:nowrap; font-size:14px; padding:8px 12px; border-radius:8px; }
                     .donation-card .amount-input{ width:100px; }
                     /* Wakf details compact styling */
