@@ -30,6 +30,7 @@ if (!function_exists('donation_app_get_collected_amount')) {
  * New fields for Product
  */
 add_action('woocommerce_product_options_general_product_data', function () {
+    global $post;
 
     woocommerce_wp_text_input([
         'id' => '_donation_target',
@@ -65,6 +66,58 @@ add_action('woocommerce_product_options_general_product_data', function () {
         'type' => 'text',
         'description' => 'Example: 10,50,100 — values should be numbers without currency symbols',
     ]);
+
+    // Waqf-specific options: repeatable label + value pairs
+    $existing_waqf = [];
+    if (!empty($post->ID)) {
+        $existing_waqf = get_post_meta($post->ID, '_waqf_options', true);
+        if (!is_array($existing_waqf)) $existing_waqf = [];
+    }
+
+    echo '<div class="options_group">';
+    echo '<p class="form-field"><label>Waqf Options (وقف) - label and price</label><span class="description">Add options such as "100 عبوة ماء" and its numeric value. These will be shown on the product card and used as the amount when added to cart.</span></p>';
+    echo '<div id="waqf-options-rows">';
+    if (!empty($existing_waqf) && is_array($existing_waqf)) {
+        foreach ($existing_waqf as $row) {
+            $lbl = isset($row['label']) ? esc_attr($row['label']) : '';
+            $val = isset($row['value']) ? esc_attr($row['value']) : '';
+            echo '<p class="form-field waqf-option-row">'
+                . '<input type="text" name="waqf_label[]" value="' . $lbl . '" placeholder="Label (e.g. 100 عبوة ماء)" style="width:60%; margin-right:8px;">'
+                . '<input type="number" step="0.01" min="0" name="waqf_value[]" value="' . $val . '" placeholder="قيمة" style="width:30%; margin-right:8px;">'
+                . '<button type="button" class="button remove-waqf-row">Remove</button>'
+                . '</p>';
+        }
+    } else {
+        // one empty row to start
+        echo '<p class="form-field waqf-option-row">'
+            . '<input type="text" name="waqf_label[]" value="" placeholder="Label (e.g. 100 عبوة ماء)" style="width:60%; margin-right:8px;">'
+            . '<input type="number" step="0.01" min="0" name="waqf_value[]" value="" placeholder="قيمة" style="width:30%; margin-right:8px;">'
+            . '<button type="button" class="button remove-waqf-row">Remove</button>'
+            . '</p>';
+    }
+    echo '</div>'; // #waqf-options-rows
+    echo '<p><button type="button" class="button" id="add-waqf-row">Add Waqf Option</button></p>';
+    echo '</div>';
+
+    // Minimal JS to add/remove rows in the product admin panel
+    echo "<script>
+    (function(){
+        var container = document.getElementById('waqf-options-rows');
+        if(!container) return;
+        document.getElementById('add-waqf-row').addEventListener('click', function(){
+            var p = document.createElement('p'); p.className='form-field waqf-option-row';
+            p.innerHTML = '<input type=\'text\' name=\'waqf_label[]\' value=\'\' placeholder=\'Label (e.g. 100 عبوة ماء)\' style=\'width:60%; margin-right:8px;\'>' +
+                          '<input type=\'number\' step=\'0.01\' min=\'0\' name=\'waqf_value[]\' value=\'\' placeholder=\'قيمة\' style=\'width:30%; margin-right:8px;\'>' +
+                          '<button type=\'button\' class=\'button remove-waqf-row\'>Remove</button>';
+            container.appendChild(p);
+        });
+        container.addEventListener('click', function(e){
+            if(e.target && e.target.classList && e.target.classList.contains('remove-waqf-row')){
+                var row = e.target.closest('.waqf-option-row'); if(row) row.parentNode.removeChild(row);
+            }
+        });
+    })();
+    </script>";
 
     // Mark this product as available for the quick-donation floating button
     woocommerce_wp_checkbox([
@@ -112,6 +165,25 @@ add_action('woocommerce_admin_process_product_object', function ($product) {
     foreach ($fields as $field) {
         if (isset($_POST[$field])) {
             $product->update_meta_data($field, sanitize_text_field($_POST[$field]));
+        }
+    }
+
+    // Save waqf options (repeatable label/value pairs)
+    if (isset($_POST['waqf_label']) && is_array($_POST['waqf_label'])) {
+        $labels = $_POST['waqf_label'];
+        $values = isset($_POST['waqf_value']) && is_array($_POST['waqf_value']) ? $_POST['waqf_value'] : [];
+        $options = [];
+        foreach ($labels as $i => $lbl) {
+            $lbl = sanitize_text_field($lbl);
+            $val = isset($values[$i]) ? floatval(str_replace(',', '.', $values[$i])) : 0;
+            if ($lbl === '' && $val <= 0) continue;
+            $options[] = [ 'label' => $lbl, 'value' => $val ];
+        }
+        if (!empty($options)) {
+            $product->update_meta_data('_waqf_options', $options);
+        } else {
+            // remove meta if empty
+            $product->delete_meta_data('_waqf_options');
         }
     }
 });
