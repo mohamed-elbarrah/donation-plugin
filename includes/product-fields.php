@@ -313,3 +313,14 @@ add_action('woocommerce_before_calculate_totals', function ($cart) {
         }
     }
 });
+
+
+/**
+ * Persist donation_amount from cart item data into order line items when creating an order
+ * so `donation_app_get_collected_amount()` can sum donation amounts from orders.
+ */
+add_action('woocommerce_checkout_create_order_line_item', function ($item, $cart_item_key, $values, $order) {
+    if (isset($values['donation_amount']) && is_numeric($values['donation_amount'])) {
+        $item->add_meta_data('donation_amount', floatval($values['donation_amount']), true);
+    }
+}, 10, 4);

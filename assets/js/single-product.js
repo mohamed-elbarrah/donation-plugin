@@ -33,26 +33,27 @@
         var productWrappers = document.querySelectorAll('[data-product-id]');
         if (productWrappers && productWrappers.length) {
             productWrappers.forEach(function(wrapper){
-                var presets = wrapper.querySelectorAll('.donation-presets .preset-amount');
+                // include both legacy `.preset-amount` and new `.waqf-option`
+                var presets = wrapper.querySelectorAll('.preset-amount, .waqf-option');
                 var localInput = wrapper.querySelector('.donation-amount-input');
 
                 // set initial state based on which preset is active (template sets first active)
                 var active = null;
-                presets.forEach(function(b){ if(b.classList.contains('active')) active = b; });
+                presets.forEach(function(b){ if(b.classList && b.classList.contains('active')) active = b; });
                 if(!active && presets.length) active = presets[0];
 
                 if(localInput){
-                    if(active && active.classList.contains('preset-other')){
+                    var activeIsOther = active && (active.classList.contains('preset-other') || active.classList.contains('waqf-other'));
+                    if(active && activeIsOther){
                         localInput.disabled = false;
-                        // leave value as is or clear to encourage custom entry
                         localInput.value = '';
-                    } else if(active && active.getAttribute('data-amount')){
+                    } else if(active && active.getAttribute && active.getAttribute('data-amount')){
                         localInput.value = active.getAttribute('data-amount');
                         localInput.disabled = true;
                     } else if(presets.length){
-                        // fallback: use first preset value
+                        // fallback: use first preset value if available
                         var first = presets[0];
-                        if(first && first.getAttribute('data-amount')){
+                        if(first && first.getAttribute && first.getAttribute('data-amount')){
                             localInput.value = first.getAttribute('data-amount');
                             localInput.disabled = true;
                         }
@@ -63,15 +64,24 @@
                 presets.forEach(function(btn){
                     btn.addEventListener('click', function(e){
                         e.preventDefault();
-                        presets.forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
-                        btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
+                        presets.forEach(function(b){ if(b.classList) b.classList.remove('active'); if(b.setAttribute) b.setAttribute('aria-pressed','false'); });
+                        if(btn.classList) btn.classList.add('active'); if(btn.setAttribute) btn.setAttribute('aria-pressed','true');
                         if(!localInput) return;
-                        if(btn.classList.contains('preset-other')){
+
+                        var isOtherClick = btn.classList.contains('preset-other') || btn.classList.contains('waqf-other');
+                        // also treat labels containing Arabic "مخصص" or "اختياري" or english "optional" as other
+                        try{
+                            var labelEl = btn.querySelector && (btn.querySelector('.preset-value') || btn.querySelector('.waqf-value') || btn.querySelector('.preset-amount-text'));
+                            var labelText = labelEl ? (labelEl.textContent||'').toString().trim().toLowerCase() : '';
+                            if(labelText.indexOf('مخصوص') !== -1 || labelText.indexOf('مخصص') !== -1 || labelText.indexOf('اختياري') !== -1 || labelText.indexOf('optional') !== -1) isOtherClick = true;
+                        }catch(err){}
+
+                        if(isOtherClick){
                             localInput.value = '';
                             localInput.disabled = false;
-                            try{ localInput.focus(); }catch(err){}
+                            try{ localInput.focus(); }catch(e){}
                         } else {
-                            var amt = btn.getAttribute('data-amount') || '';
+                            var amt = (btn.getAttribute && btn.getAttribute('data-amount')) || (btn.dataset && btn.dataset.amount ? btn.dataset.amount : '');
                             localInput.value = amt;
                             localInput.disabled = true;
                         }

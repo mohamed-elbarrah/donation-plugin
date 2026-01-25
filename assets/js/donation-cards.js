@@ -2,22 +2,36 @@
 (function(){
   'use strict';
 
-  // Handle preset clicks
+  // Handle preset clicks (support legacy .preset-amount and new .waqf-option)
   document.addEventListener('click', function(e){
-    var btn = e.target.closest && e.target.closest('.preset-amount');
+    var btn = e.target.closest && (e.target.closest('.preset-amount') || e.target.closest('.waqf-option'));
     if(!btn) return;
     var container = btn.closest && btn.closest('.donation-card');
     if(!container) return;
 
-    // deactivate siblings
-    container.querySelectorAll('.preset-amount').forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+    // deactivate siblings for both selectors
+    container.querySelectorAll('.preset-amount, .waqf-option').forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
     btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
 
     var input = container.querySelector('.amount-input');
-    if(btn.classList.contains('preset-other')){
-      if(input){ input.disabled = false; input.value = input.value || ''; input.focus(); }
+
+    // Determine if this button should act as the "other"/custom input
+    var isOther = false;
+    if (btn.classList.contains('preset-other') || btn.classList.contains('waqf-other')) isOther = true;
+    // also treat labels containing Arabic "مخصص" or "اختياري" or english "optional" as other
+    try{
+      var labelText = '';
+      var labelEl = btn.querySelector('.preset-value, .waqf-value, .preset-amount-text');
+      if(labelEl) labelText = (labelEl.textContent||'').toString().trim().toLowerCase();
+      if(labelText.indexOf('مخصص') !== -1 || labelText.indexOf('اختياري') !== -1 || labelText.indexOf('optional') !== -1) isOther = true;
+    }catch(err){ }
+
+    if(isOther){
+      if(input){ input.disabled = false; input.value = input.value || ''; try{ input.focus(); }catch(e){} }
     } else {
-      if(input && btn.dataset && btn.dataset.amount){ input.value = btn.dataset.amount; input.disabled = true; }
+      // prefer data-amount attribute, fallback to dataset.amount
+      var amt = btn.getAttribute('data-amount') || (btn.dataset && btn.dataset.amount ? btn.dataset.amount : '');
+      if(input && amt !== ''){ input.value = amt; input.disabled = true; }
     }
   }, false);
 
@@ -26,13 +40,22 @@
     document.querySelectorAll('.donation-card').forEach(function(card){
       var input = card.querySelector('.amount-input');
       if(!input) return;
-      var active = card.querySelector('.preset-amount.active');
+      // check for active preset in either legacy or waqf markup
+      var active = card.querySelector('.preset-amount.active') || card.querySelector('.waqf-option.active');
       if(active){
-        if(active.classList.contains('preset-other')){
+        // detect other/custom
+        var isOther = active.classList.contains('preset-other') || active.classList.contains('waqf-other');
+        try{
+          var labelEl = active.querySelector('.preset-value, .waqf-value, .preset-amount-text');
+          var labelText = labelEl ? (labelEl.textContent||'').toString().trim().toLowerCase() : '';
+          if(labelText.indexOf('مخصص') !== -1 || labelText.indexOf('اختياري') !== -1 || labelText.indexOf('optional') !== -1) isOther = true;
+        }catch(err){}
+
+        if(isOther){
           input.disabled = false; // keep any server-populated value
-        } else if(active.dataset && active.dataset.amount){
-          input.value = active.dataset.amount;
-          input.disabled = true;
+        } else {
+          var amt = active.getAttribute('data-amount') || (active.dataset && active.dataset.amount ? active.dataset.amount : '');
+          if(amt !== ''){ input.value = amt; input.disabled = true; }
         }
       } else {
         // no active, enable input
