@@ -145,17 +145,26 @@ if (!function_exists('donation_render_card_standard')) {
                 <div class="donation-amount-title"><?php echo esc_html( $amount_title ); ?></div>
 
                 <?php
-                $presets_raw = get_post_meta($post_id, '_donation_presets', true);
+                // Prefer structured presets (array of ['label'=>..,'value'=>..])
                 $presets = [];
-                if ($presets_raw) {
-                    $parts = explode(',', $presets_raw);
-                    foreach ($parts as $p) {
-                        $n = floatval(trim($p));
-                        if ($n > 0) $presets[] = $n;
+                $presets_raw = get_post_meta($post_id, '_donation_presets', true);
+                if (!empty($presets_raw)) {
+                    if (is_array($presets_raw)) {
+                        foreach ($presets_raw as $opt) {
+                            $label = isset($opt['label']) ? $opt['label'] : '';
+                            $value = isset($opt['value']) ? floatval($opt['value']) : 0;
+                            if ($value > 0) $presets[] = ['label' => $label ?: wc_price($value), 'value' => $value];
+                        }
+                    } else {
+                        $parts = explode(',', $presets_raw);
+                        foreach ($parts as $p) {
+                            $n = floatval(trim($p));
+                            if ($n > 0) $presets[] = ['label' => (string)$n, 'value' => $n];
+                        }
                     }
                 }
                 if (empty($presets)) {
-                    $presets = [10,50,100];
+                    $presets = [['label' => '10', 'value' => 10], ['label' => '50', 'value' => 50], ['label' => '100', 'value' => 100]];
                 }
 
                 // If a donation_amount is provided in the request, try to honor it.
@@ -169,8 +178,9 @@ if (!function_exists('donation_render_card_standard')) {
                 $active_is_other = false;
                 if ($requested_amount !== null) {
                     $found = false;
-                    foreach ($presets as $i => $amt) {
-                        if (abs(floatval($amt) - $requested_amount) < 0.0001) { // numeric match
+                    foreach ($presets as $i => $opt) {
+                        $amt = isset($opt['value']) ? floatval($opt['value']) : 0;
+                        if (abs($amt - $requested_amount) < 0.0001) {
                             $active_preset_index = $i;
                             $found = true;
                             break;
@@ -182,43 +192,120 @@ if (!function_exists('donation_render_card_standard')) {
                 }
                 ?>
 
-                <div class="preset-amounts" role="list">
-                    <?php foreach ($presets as $idx => $amt): $is_active = ($active_is_other ? false : ($idx === $active_preset_index));
+                <div class="waqf-options" role="list">
+                    <?php foreach ($presets as $idx => $opt):
+                        $is_active = ($active_is_other ? false : ($idx === $active_preset_index));
                         $btn_disabled_attr = $is_complete ? ' disabled aria-disabled="true"' : '';
                         $pressed = ($is_active && !$is_complete) ? 'true' : 'false';
+                        $amt = isset($opt['value']) ? $opt['value'] : 0;
+                        $label = isset($opt['label']) ? $opt['label'] : (string)$amt;
                     ?>
-                        <button type="button" class="preset-amount<?php echo $is_active ? ' active' : ''; ?>" data-amount="<?php echo esc_attr($amt); ?>" aria-pressed="<?php echo $pressed; ?>" <?php echo $btn_disabled_attr; ?>>
-                            <span class="preset-side preset-right">
-                                <span class="preset-check">✓</span>
-                            </span>
-                            <span class="preset-value"><?php echo esc_html($amt); ?></span>
-                            <span class="preset-side preset-left">
-                                <span class="preset-currency"><?php echo function_exists('get_woocommerce_currency_symbol') ? esc_html( get_woocommerce_currency_symbol() ) : '&#36;'; ?></span>
-                            </span>
-                        </button>
+                            <button type="button" class="waqf-option<?php echo $is_active ? ' active' : ''; ?>" data-amount="<?php echo esc_attr($amt); ?>" aria-pressed="<?php echo $pressed; ?>" <?php echo $btn_disabled_attr; ?>>
+                                <span class="waqf-value"><?php echo esc_html($label); ?></span>
+                            </button>
                     <?php endforeach; ?>
-                    <button type="button" class="preset-amount preset-other<?php echo $active_is_other ? ' active' : ''; ?>" data-other="1" aria-pressed="<?php echo $active_is_other ? 'true' : 'false'; ?>" <?php echo $is_complete ? 'disabled aria-disabled="true"' : ''; ?> >
-                        <span class="preset-side preset-right">
-                            <span class="preset-check">✓</span>
-                        </span>
-                        <span class="preset-value">مبلغ مخصص</span>
-                    </button>
+                    <button type="button" class="waqf-option waqf-other<?php echo $active_is_other ? ' active' : ''; ?>" data-other="1" aria-pressed="<?php echo $active_is_other ? 'true' : 'false'; ?>" <?php echo $is_complete ? 'disabled aria-disabled="true"' : ''; ?> >
+                            <span class="waqf-value">مبلغ مخصص</span>
+                        </button>
                 </div>
 
                 <style>
-                    /* Compact CTA so Arabic label fits on one line */
-                    .donation-card .card-actions { display:flex; gap:10px; align-items:center; }
-                    .donation-card .donate-btn { white-space:nowrap; font-size:14px; padding:8px 12px; border-radius:8px; }
-                    .donation-card .amount-input{ width:100px; }
-                    @media (max-width:720px){ .donation-card .card-actions{ flex-direction:column; align-items:stretch; } .donation-card .amount-input{ width:100%; } }
-                    .donation-card .disabled { pointer-events:none; opacity:0.6; filter:grayscale(20%); }
-                    .donation-card .progress-message-line { text-align:center; margin-top:0; font-weight:600; direction:rtl; }
-                    .donation-card .progress-message-sub { font-weight:500; font-size:0.95em; margin-right:8px; }
-                    .donation-card .progress-bar-container { position:relative; }
-                    .donation-card .progress-overlay { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none; color:var(--wc-primary-color, inherit); display:flex; align-items:center; gap:5px; white-space:nowrap; font-size: 14px; color:#085931;}
-                    .donation-card .progress-overlay .progress-bar-label { font-weight:800; font-size:0.95em; display:block; }
-                    .donation-card .progress-message-main { display:inline-block; }
+                    /* Render waqf options inline and wrap to next line when needed */
+                    .donation-card .waqf-options { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0 6px; justify-content:center; }
+                    .donation-card .waqf-option{
+                        background: transparent;
+                        border: 1px solid #e6e6e6;
+                        border-radius: 8px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 4px;
+                        cursor: pointer;
+                        color: #122;
+                        font-weight: 700;
+                        padding: 6px 10px;
+                        box-sizing: border-box;
+                        font-size:13px;
+                        min-width:56px;
+                        flex: 0 0 auto;
+                        white-space:nowrap;
+                    }
+                    .donation-card .waqf-value{ font-size:12px; flex:1 1 auto; text-align:center; padding:0 0px; font-weight:700 }
+                    .donation-card .waqf-option.active{
+                        background: linear-gradient(180deg, var(--donation-blue) 0%, #223f53 100%);
+                        border-color: transparent;
+                        color: var(--donation-white);
+                        box-shadow: 0 8px 20px rgba(41,77,103,0.08);
+                    }
                 </style>
+
+                <script>
+                (function(){
+                    var card = document.currentScript && document.currentScript.parentNode ? document.currentScript.parentNode : document.querySelector('.donation-card');
+                    if(!card) return;
+                    var options = Array.prototype.slice.call(card.querySelectorAll('.waqf-option'));
+                    var input = card.querySelector('.amount-input');
+
+                    function removeChecks(){
+                        options.forEach(function(b){
+                            var s = b.querySelector('.waqf-side');
+                            if(s) s.remove();
+                            b.setAttribute('aria-pressed','false');
+                        });
+                    }
+
+                    function addCheckTo(btn){
+                        if(!btn) return;
+                        var s = btn.querySelector('.waqf-side');
+                        if(!s){
+                            s = document.createElement('span');
+                            s.className = 'waqf-side waqf-right';
+                            var inner = document.createElement('span');
+                            inner.className = 'waqf-check';
+                            inner.textContent = '✓';
+                            s.appendChild(inner);
+                            var val = btn.querySelector('.waqf-value');
+                            if(val){
+                                btn.insertBefore(s, val);
+                            } else {
+                                btn.appendChild(s);
+                            }
+                        }
+                        btn.setAttribute('aria-pressed','true');
+                    }
+
+                    options.forEach(function(btn){
+                        btn.addEventListener('click', function(){
+                            if(btn.classList.contains('waqf-other')){
+                                options.forEach(function(b){ b.classList.remove('active'); });
+                                removeChecks();
+                                btn.classList.add('active');
+                                addCheckTo(btn);
+                                if(input){ input.disabled = false; input.value = ''; input.focus(); }
+                                return;
+                            }
+                            var amt = btn.getAttribute('data-amount');
+                            options.forEach(function(b){ b.classList.remove('active'); });
+                            removeChecks();
+                            btn.classList.add('active');
+                            addCheckTo(btn);
+                            if(input){ input.value = (amt ? amt : ''); input.disabled = true; }
+                        });
+                    });
+
+                    // On load, if an option is already active, ensure input reflects it and render check
+                    var active = card.querySelector('.waqf-option.active');
+                    if(active){
+                        removeChecks();
+                        addCheckTo(active);
+                        if(active.classList.contains('waqf-other')){
+                            if(input) { input.disabled = false; }
+                        } else {
+                            var a = active.getAttribute('data-amount'); if(input) { input.value = a; input.disabled = true; }
+                        }
+                    }
+                })();
+                </script>
                 <div class="card-actions">
                     <?php $cta_label = $donation_mode === 'donation' ? 'تبرع الآن' : 'اضف للسلة'; ?>
                     <?php if ($is_complete): ?>
@@ -238,10 +325,16 @@ if (!function_exists('donation_render_card_standard')) {
                         } else {
                             // use the active preset amount
                             $preset_amt = isset($presets[$active_preset_index]) ? $presets[$active_preset_index] : null;
-                            if ($preset_amt !== null) {
-                                $input_value = $preset_amt;
-                                $input_disabled = true;
-                            }
+                                if ($preset_amt !== null) {
+                                    if (is_array($preset_amt) && isset($preset_amt['value'])) {
+                                        $input_value = $preset_amt['value'];
+                                    } elseif (is_numeric($preset_amt)) {
+                                        $input_value = $preset_amt;
+                                    } else {
+                                        $input_value = '';
+                                    }
+                                    $input_disabled = true;
+                                }
                         }
                         ?>
                         <input type="number" min="1" step="0.01" class="amount-input" placeholder="أدخل المبلغ" aria-label="<?php echo esc_attr( $amount_title ); ?>" data-product-id="<?php echo esc_attr($product_id); ?>" value="<?php echo esc_attr($input_value); ?>" <?php echo ($input_disabled || $is_complete) ? 'disabled' : ''; ?>>

@@ -60,14 +60,70 @@ add_action('woocommerce_product_options_general_product_data', function () {
         'description' => 'e.g. Urgent, Medical, Housing',
     ]);
 
-    woocommerce_wp_text_input([
-        'id' => '_donation_presets',
-        'label' => 'Preset donation amounts (comma separated)',
-        'type' => 'text',
-        'description' => 'Example: 10,50,100 — values should be numbers without currency symbols',
-    ]);
+    // Preset donation amounts are rendered below as repeatable label/value pairs
 
-    // Waqf-specific options: repeatable label + value pairs
+    $existing_presets = [];
+    if (!empty($post->ID)) {
+        $existing_presets = get_post_meta($post->ID, '_donation_presets', true);
+        if (!is_array($existing_presets)) {
+            if (!empty($existing_presets) && is_string($existing_presets)) {
+                $parts = explode(',', $existing_presets);
+                $tmp = [];
+                foreach ($parts as $p) {
+                    $n = floatval(trim($p));
+                    if ($n > 0) $tmp[] = ['label' => (string)$n, 'value' => $n];
+                }
+                $existing_presets = $tmp;
+            } else {
+                $existing_presets = [];
+            }
+        }
+    }
+
+    echo '<div class="options_group">';
+    echo '<p class="form-field"><label>Preset donation amounts - label and price</label><span class="description">Add preset amounts shown on the product card (label and numeric value).</span></p>';
+    echo '<div id="presets-options-rows">';
+    if (!empty($existing_presets) && is_array($existing_presets)) {
+        foreach ($existing_presets as $row) {
+            $pl = isset($row['label']) ? esc_attr($row['label']) : '';
+            $pv = isset($row['value']) ? esc_attr($row['value']) : '';
+            echo '<p class="form-field preset-option-row">'
+                . '<input type="text" name="preset_label[]" value="' . $pl . '" placeholder="Label (e.g. 50 تبرع)" style="width:60%; margin-right:8px;">'
+                . '<input type="number" step="0.01" min="0" name="preset_value[]" value="' . $pv . '" placeholder="قيمة" style="width:30%; margin-right:8px;">'
+                . '<button type="button" class="button remove-preset-row">Remove</button>'
+                . '</p>';
+        }
+    } else {
+        echo '<p class="form-field preset-option-row">'
+            . '<input type="text" name="preset_label[]" value="" placeholder="Label (e.g. 50 تبرع)" style="width:60%; margin-right:8px;">'
+            . '<input type="number" step="0.01" min="0" name="preset_value[]" value="" placeholder="قيمة" style="width:30%; margin-right:8px;">'
+            . '<button type="button" class="button remove-preset-row">Remove</button>'
+            . '</p>';
+    }
+    echo '</div>';
+    echo '<p><button type="button" class="button" id="add-preset-row">Add Preset</button></p>';
+    echo '</div>';
+
+    echo "<script>
+    (function(){
+        var container = document.getElementById('presets-options-rows');
+        if(!container) return;
+        document.getElementById('add-preset-row').addEventListener('click', function(){
+            var p = document.createElement('p'); p.className='form-field preset-option-row';
+            p.innerHTML = '<input type=\'text\' name=\'preset_label[]\' value=\'\' placeholder=\'Label (e.g. 50 تبرع)\' style=\'width:60%; margin-right:8px;\'>' +
+                          '<input type=\'number\' step=\'0.01\' min=\'0\' name=\'preset_value[]\' value=\'\' placeholder=\'قيمة\' style=\'width:30%; margin-right:8px;\'>' +
+                          '<button type=\'button\' class=\'button remove-preset-row\'>Remove</button>';
+            container.appendChild(p);
+        });
+        container.addEventListener('click', function(e){
+            if(e.target && e.target.classList && e.target.classList.contains('remove-preset-row')){
+                var row = e.target.closest('.preset-option-row'); if(row) row.parentNode.removeChild(row);
+            }
+        });
+    })();
+    </script>";
+
+    
     $existing_waqf = [];
     if (!empty($post->ID)) {
         $existing_waqf = get_post_meta($post->ID, '_waqf_options', true);
@@ -158,7 +214,6 @@ add_action('woocommerce_admin_process_product_object', function ($product) {
         '_donation_location',
         '_donation_badge',
         '_donation_mode',
-        '_donation_presets',
         '_quick_donation'
     ];
 
@@ -184,6 +239,24 @@ add_action('woocommerce_admin_process_product_object', function ($product) {
         } else {
             // remove meta if empty
             $product->delete_meta_data('_waqf_options');
+        }
+    }
+
+    // Save preset donation options (repeatable label/value pairs)
+    if (isset($_POST['preset_label']) && is_array($_POST['preset_label'])) {
+        $labels = $_POST['preset_label'];
+        $values = isset($_POST['preset_value']) && is_array($_POST['preset_value']) ? $_POST['preset_value'] : [];
+        $options = [];
+        foreach ($labels as $i => $lbl) {
+            $lbl = sanitize_text_field($lbl);
+            $val = isset($values[$i]) ? floatval(str_replace(',', '.', $values[$i])) : 0;
+            if ($lbl === '' && $val <= 0) continue;
+            $options[] = [ 'label' => $lbl, 'value' => $val ];
+        }
+        if (!empty($options)) {
+            $product->update_meta_data('_donation_presets', $options);
+        } else {
+            $product->delete_meta_data('_donation_presets');
         }
     }
 });

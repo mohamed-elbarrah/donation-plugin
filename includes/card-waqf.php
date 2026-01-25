@@ -167,14 +167,22 @@ if (!function_exists('donation_render_card_wakf')) {
                     }
                 }
 
-                // Fallback to legacy comma-separated presets (numbers) for compatibility
+                // Fallback to legacy presets. Support structured array (label/value)
                 if (empty($presets)) {
                     $presets_raw = get_post_meta($post_id, '_donation_presets', true);
-                    if ($presets_raw) {
-                        $parts = explode(',', $presets_raw);
-                        foreach ($parts as $p) {
-                            $n = floatval(trim($p));
-                            if ($n > 0) $presets[] = ['label' => (string)$n, 'value' => $n];
+                    if (!empty($presets_raw)) {
+                        if (is_array($presets_raw)) {
+                            foreach ($presets_raw as $opt) {
+                                $label = isset($opt['label']) ? $opt['label'] : '';
+                                $value = isset($opt['value']) ? floatval($opt['value']) : 0;
+                                if ($value > 0) $presets[] = ['label' => $label ?: wc_price($value), 'value' => $value];
+                            }
+                        } else {
+                            $parts = explode(',', $presets_raw);
+                            foreach ($parts as $p) {
+                                $n = floatval(trim($p));
+                                if ($n > 0) $presets[] = ['label' => (string)$n, 'value' => $n];
+                            }
                         }
                     }
                 }
