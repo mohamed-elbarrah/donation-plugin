@@ -1,0 +1,38 @@
+/* Compatibility overrides to ensure progress overlay and labels
+   render consistently across card templates without editing original files.
+   This file is intentionally additive and scoped to .donation-card.
+*/
+.donation-card .progress-bar-container { position:relative; }
+.donation-card .progress-overlay {
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  pointer-events:none;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:4px;
+  white-space:nowrap;
+  font-size:14px;
+  color: #085931; /* match designer color used in wakf template */
+  z-index:2;
+  padding:2px 6px;
+}
+.donation-card .progress-overlay .progress-bar-label{
+  font-weight:800;
+  font-size:0.95em;
+  color: inherit; /* match progress-message-line color */
+  background: transparent; /* remove backing */
+  padding:0;
+  border-radius:0;
+}
+.donation-card .progress-message-line{
+  display:inline-block;
+  margin:0;
+  font-weight:600;
+  direction:rtl;
+  color: #085931;
+}
+.donation-card .progress-message-sub{ font-weight:500; font-size:0.95em; margin-top:0; color: rgba(8,89,49,0.95); }

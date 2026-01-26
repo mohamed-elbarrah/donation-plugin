@@ -3,7 +3,7 @@
  * Plugin Name: Donation App
  * Description: A trusted digital donation platform that connects donors with verified humanitarian cases and charitable projects. made with ♥ by Mohamed ElBarrah.
  * Author: Mohamed ElBarrah
- * Version: 1.2.3
+ * Version: 1.2.4
  */
 
 if (!defined('ABSPATH')) exit;
@@ -80,6 +80,16 @@ if (!class_exists('Donation_Campaigns')) {
                 [],
                 $cards_ver
             );
+            // Compatibility overrides (do not modify core cards CSS; this file is additive)
+            $compat_css = plugin_dir_path(__FILE__) . 'assets/css/donation-cards-compat.css';
+            if (file_exists($compat_css)) {
+                wp_enqueue_style(
+                    'donation-cards-compat',
+                    plugin_dir_url(__FILE__) . 'assets/css/donation-cards-compat.css',
+                    ['donation-cards'],
+                    filemtime($compat_css)
+                );
+            }
             wp_enqueue_style(
                 'donation-currency-symbol',
                 plugin_dir_url(__FILE__) . 'assets/css/currency-symbol.css',
