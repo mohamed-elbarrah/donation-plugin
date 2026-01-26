@@ -12,7 +12,7 @@ if (!function_exists('donation_render_card_wakf')) {
         if (!$post) return;
         $product = wc_get_product($post_id);
         $target = (float) get_post_meta($post_id, '_donation_target', true);
-        $collected = (float) get_post_meta($post_id, '_donation_collected', true);
+        $collected = (function_exists('donation_app_get_collected_amount') ? donation_app_get_collected_amount($post_id) : (float) get_post_meta($post_id, '_donation_collected', true));
         $location = get_post_meta($post_id, '_donation_location', true);
         $badge = get_post_meta($post_id, '_donation_badge', true);
 

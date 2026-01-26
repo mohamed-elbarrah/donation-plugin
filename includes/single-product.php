@@ -36,7 +36,7 @@ add_action('woocommerce_single_product_summary', function () {
     $product_id = $product->get_id();
 
     $target = (float) get_post_meta($product_id, '_donation_target', true);
-    $collected = (float) get_post_meta($product_id, '_donation_collected', true);
+    $collected = (function_exists('donation_app_get_collected_amount') ? donation_app_get_collected_amount($product_id) : (float) get_post_meta($product_id, '_donation_collected', true));
     $location = get_post_meta($product_id, '_donation_location', true);
     $badge = get_post_meta($product_id, '_donation_badge', true);
     $donation_mode = get_post_meta($product_id, '_donation_mode', true);

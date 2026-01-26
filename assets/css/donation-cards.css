@@ -72,7 +72,7 @@
 .card-header img, .card-header .wp-post-image, .card-header a img {
   width:100% !important;
   height:100% !important;
-  object-fit:cover !important;
+  /* object-fit:cover !important; */
   display:block !important;
 }
 
