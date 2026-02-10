@@ -3,10 +3,21 @@
  * Plugin Name: Donation App
  * Description: A trusted digital donation platform that connects donors with verified humanitarian cases and charitable projects. made with ♥ by Mohamed ElBarrah.
  * Author: Mohamed ElBarrah
- * Version: 1.2.5
+ * Version: 1.2.7
  */
 
 if (!defined('ABSPATH')) exit;
+
+// Load affiliate module only when its functions aren't already defined by another plugin
+$affiliate_inc = plugin_dir_path(__FILE__) . 'includes/affiliate.php';
+if (file_exists($affiliate_inc) && !function_exists('affiliate_sys_install')) {
+    require_once $affiliate_inc;
+}
+
+// Register activation hook if the affiliate installer function is available
+if (function_exists('affiliate_sys_install')) {
+    register_activation_hook(__FILE__, 'affiliate_sys_install');
+}
 
 if (!class_exists('Donation_Campaigns')) {
     class Donation_Campaigns {

@@ -88,7 +88,7 @@ add_action('woocommerce_single_product_summary', function () {
                     // Message and completion flag for single product view
                     $is_complete = ($progress >= 100);
                     if ($is_complete) {
-                        echo '<div class="progress-message">\n  <div>اكتملت بعطائكم</div>\n  <div class="progress-sub">هنيئًا لكم الأجر</div>\n</div>';
+                        echo '<div class="progress-message"><div>اكتملت بعطائكم</div><div class="progress-sub">هنيئًا لكم الأجر</div></div>';
                     } elseif ($progress >= 90) {
                         echo '<div class="progress-message">أوشَكَت على الاكتمال</div>';
                     } elseif ($progress >= 75) {
