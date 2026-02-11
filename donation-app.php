@@ -19,6 +19,17 @@ if (function_exists('affiliate_sys_install')) {
     register_activation_hook(__FILE__, 'affiliate_sys_install');
 }
 
+// Stats module (site-wide activity tracking)
+$stats_inc = plugin_dir_path(__FILE__) . 'includes/stats-tracker.php';
+if (file_exists($stats_inc)) {
+    require_once $stats_inc;
+}
+
+// Register activation hook to create stats DB table
+if (function_exists('donation_app_stats_install')) {
+    register_activation_hook(__FILE__, 'donation_app_stats_install');
+}
+
 if (!class_exists('Donation_Campaigns')) {
     class Donation_Campaigns {
         public function __construct() {
@@ -58,6 +69,10 @@ if (!class_exists('Donation_Campaigns')) {
             require_once plugin_dir_path(__FILE__) . 'includes/projects.php';
             // admin settings (toggle for currency symbol, etc.)
             require_once plugin_dir_path(__FILE__) . 'includes/admin-settings.php';
+            // admin stats UI (store activity statistics)
+            if (file_exists(plugin_dir_path(__FILE__) . 'includes/admin-stats.php')) {
+                require_once plugin_dir_path(__FILE__) . 'includes/admin-stats.php';
+            }
             // Zakat feature (isolated module)
             require_once plugin_dir_path(__FILE__) . 'includes/zakat.php';
 
