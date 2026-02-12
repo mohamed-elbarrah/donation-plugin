@@ -3,7 +3,7 @@
  * Plugin Name: Donation App
  * Description: A trusted digital donation platform that connects donors with verified humanitarian cases and charitable projects. made with ♥ by Mohamed ElBarrah.
  * Author: Mohamed ElBarrah
- * Version: 1.2.7
+ * Version: 1.2.8
  */
 
 if (!defined('ABSPATH')) exit;

@@ -23,9 +23,18 @@ $donation_app_stats_included = true;
 class Donation_App_Stats {
     const COOKIE_NAME = 'donation_app_sid';
     const COOKIE_TTL = DAY_IN_SECONDS * 30; // 30 days
+    // mark if this request already recorded a page view
+    public static $tracked_in_request = false;
 
     public static function init() {
         add_action('template_redirect', [__CLASS__, 'maybe_track_page_view'], 0);
+
+        // ensure table exists (create on first run if missing)
+        add_action('init', [__CLASS__, 'ensure_table_exists'], 5);
+
+        // Front-end beacon for cached pages
+        add_action('wp_enqueue_scripts', [__CLASS__, 'enqueue_frontend_beacon']);
+        add_action('wp_footer', [__CLASS__, 'print_tracked_flag']);
 
         // WooCommerce hooks
         add_action('woocommerce_before_checkout_form', [__CLASS__, 'record_checkout_start']);
@@ -35,6 +44,9 @@ class Donation_App_Stats {
 
         // Admin AJAX: only available to privileged users (admins)
         add_action('wp_ajax_donation_app_get_stats', [__CLASS__, 'ajax_get_stats']);
+        // Public endpoint for recording events from JS (for cached pages)
+        add_action('wp_ajax_nopriv_donation_app_record_event', [__CLASS__, 'ajax_record_event']);
+        add_action('wp_ajax_donation_app_record_event', [__CLASS__, 'ajax_record_event']);
     }
 
     /**
@@ -45,8 +57,14 @@ class Donation_App_Stats {
             return sanitize_text_field(wp_unslash($_COOKIE[self::COOKIE_NAME]));
         }
         $sid = wp_generate_password(40, false, false);
-        $secure = is_ssl();
-        setcookie(self::COOKIE_NAME, $sid, time() + self::COOKIE_TTL, COOKIEPATH ?: '/', COOKIE_DOMAIN ?: '', $secure, true);
+        // Detect SSL when behind reverse proxies
+        $secure = is_ssl() || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strpos($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false) || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on');
+        // Only attempt to set cookie if headers not already sent
+        if (!headers_sent()) {
+            setcookie(self::COOKIE_NAME, $sid, time() + self::COOKIE_TTL, COOKIEPATH ?: '/', COOKIE_DOMAIN ?: '', $secure, true);
+        } else {
+            if (defined('WP_DEBUG') && WP_DEBUG) error_log('Donation App: headers already sent, could not set session cookie');
+        }
         // Also populate PHP superglobal so same-request reads work
         $_COOKIE[self::COOKIE_NAME] = $sid;
         return $sid;
@@ -72,6 +90,9 @@ class Donation_App_Stats {
         ];
 
         self::record_event($event);
+
+        // mark that we recorded this request so the footer beacon won't duplicate
+        self::$tracked_in_request = true;
 
         // If this is checkout page (customer reached checkout) record checkout_start
         if (function_exists('is_checkout') && is_checkout() && !is_order_received_page()) {
@@ -155,6 +176,81 @@ class Donation_App_Stats {
         $formats = ['%s','%s','%d','%s','%s','%d','%d','%s','%s'];
         // Use $wpdb->insert (safe, uses prepared statements)
         $wpdb->insert($table, $insert, $formats);
+        if ($wpdb->last_error) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Donation App: DB insert error: ' . $wpdb->last_error . ' -- Query: ' . $wpdb->last_query);
+            }
+        }
+    }
+
+    /**
+     * Ensure the events table exists and create it if missing.
+     */
+    public static function ensure_table_exists() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'donation_app_stats';
+        $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+        if (!$exists) {
+            // call the install routine defined below
+            donation_app_stats_install();
+        }
+    }
+
+    /**
+     * AJAX endpoint for front-end beacon to record events when pages are cached.
+     * Accepts POST/GET: event_type (page_view|checkout_start) and url (optional).
+     */
+    public static function ajax_record_event() {
+        $event_type = isset($_REQUEST['event_type']) ? sanitize_key(wp_unslash($_REQUEST['event_type'])) : 'page_view';
+        $allowed = ['page_view','checkout_start'];
+        if (!in_array($event_type, $allowed, true)) $event_type = 'page_view';
+
+        $sid = isset($_COOKIE[self::COOKIE_NAME]) && is_string($_COOKIE[self::COOKIE_NAME]) ? sanitize_text_field(wp_unslash($_COOKIE[self::COOKIE_NAME])) : null;
+        if (!$sid) {
+            $sid = wp_generate_password(40, false, false);
+            $secure = is_ssl() || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strpos($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false);
+            if (!headers_sent()) setcookie(self::COOKIE_NAME, $sid, time() + self::COOKIE_TTL, COOKIEPATH ?: '/', COOKIE_DOMAIN ?: '', $secure, true);
+            $_COOKIE[self::COOKIE_NAME] = $sid;
+        }
+
+        $url = isset($_REQUEST['url']) ? esc_url_raw(wp_unslash($_REQUEST['url'])) : (is_ssl() ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? '');
+
+        self::record_event([
+            'event_type' => $event_type,
+            'session_id' => $sid,
+            'user_id' => get_current_user_id() ?: null,
+            'url' => $url,
+        ]);
+
+        wp_send_json_success(['recorded' => true]);
+    }
+
+    /**
+     * Enqueue a tiny front-end beacon script to send events when PHP tracking is skipped (cached pages).
+     */
+    public static function enqueue_frontend_beacon() {
+        if (is_admin()) return;
+        wp_register_script('donation-app-beacon', '', [], null, true);
+        wp_enqueue_script('donation-app-beacon');
+        $is_checkout = (function_exists('is_checkout') && is_checkout() && !function_exists('is_order_received_page') ? true : (function_exists('is_order_received_page') ? (is_checkout() && !is_order_received_page()) : false));
+        $inline = "(function(){\n".
+            "document.addEventListener('DOMContentLoaded', function(){\n".
+            "  try{ if (window.__donation_app_tracked) return; }catch(e){}\n".
+            "  var evt = 'page_view';\n".
+            ($is_checkout ? "  evt = 'checkout_start';\n" : "") .
+            "  var payload = 'action=donation_app_record_event&event_type='+encodeURIComponent(evt)+'&url='+encodeURIComponent(location.href);\n".
+            "  fetch('" . admin_url('admin-ajax.php') . "', { method:'POST', body: payload, credentials:'same-origin', headers: {'Content-Type':'application/x-www-form-urlencoded'} }).catch(function(e){});\n".
+            "});\n})();";
+        wp_add_inline_script('donation-app-beacon', $inline);
+    }
+
+    /**
+     * Print a small JS flag in footer when server-side tracking ran so beacon won't duplicate.
+     */
+    public static function print_tracked_flag() {
+        if (!empty(self::$tracked_in_request)) {
+            echo "<script>window.__donation_app_tracked = true;</script>";
+        }
     }
 
     /**
