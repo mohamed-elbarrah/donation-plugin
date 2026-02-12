@@ -314,3 +314,53 @@ function donation_app_render_upcoming_services() {
     <?php
     return ob_get_clean();
 }
+
+
+add_action( 'wp_footer', function () {
+    if ( ! is_checkout() ) return;
+    ?>
+    <script>
+    (function () {
+        function toggleCardFields(isApplePay) {
+            
+            var cardFields = [
+                'moyasar-card-name',
+                'moyasar-card-number',
+                'moyasar-card-expiry',
+                'moyasar-card-cvc'
+            ];
+
+            cardFields.forEach(function(id) {
+                var field = document.getElementById(id);
+                if (!field) return;
+
+                if (isApplePay) {
+                    field.value = 'APPLE PAY'; 
+                    field.removeAttribute('required');
+                    field.setAttribute('readonly', 'readonly');
+                    field.style.display = 'none'; 
+                } else {
+                    field.value = '';
+                    field.removeAttribute('readonly');
+                    field.setAttribute('required', 'required');
+                    field.style.display = '';
+                }
+            });
+        }
+
+        
+        document.addEventListener('change', function (e) {
+            if (e.target.name === 'payment_method') {
+                toggleCardFields(e.target.value === 'moyasar-apple-pay');
+            }
+        });
+
+		var selected = document.querySelector('input[name="payment_method"]:checked');
+        if (selected) {
+            toggleCardFields(selected.value === 'moyasar-apple-pay');
+        }
+    })();
+    </script>
+    <?php
+});
+
