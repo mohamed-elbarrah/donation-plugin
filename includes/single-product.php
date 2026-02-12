@@ -170,9 +170,9 @@ add_action('woocommerce_single_product_summary', function () {
                                             <span class="waqf-value"><?php echo esc_html($label); ?></span>
                                         </button>
                                     <?php endforeach; ?>
-                                    <button type="button" class="waqf-option waqf-other<?php echo $active_is_other ? ' active' : ''; ?>" data-other="1" aria-pressed="<?php echo $active_is_other ? 'true' : 'false'; ?>" <?php echo $is_complete ? 'disabled aria-disabled="true"' : ''; ?> >
+                                    <!-- <button type="button" class="waqf-option waqf-other<?php echo $active_is_other ? ' active' : ''; ?>" data-other="1" aria-pressed="<?php echo $active_is_other ? 'true' : 'false'; ?>" <?php echo $is_complete ? 'disabled aria-disabled="true"' : ''; ?> >
                                         <span class="waqf-value">مبلغ مخصص</span>
-                                    </button>
+                                    </button> -->
                                 </div>
                             </div>
 
@@ -273,9 +273,9 @@ add_action('woocommerce_single_product_summary', function () {
                                             <span class="waqf-value"><?php echo esc_html($label); ?></span>
                                         </button>
                                     <?php endforeach; ?>
-                                    <button type="button" class="waqf-option waqf-other<?php echo $active_is_other ? ' active' : ''; ?>" data-other="1" aria-pressed="<?php echo $active_is_other ? 'true' : 'false'; ?>" <?php echo $is_complete ? 'disabled aria-disabled="true"' : ''; ?> >
+                                    <!-- <button type="button" class="waqf-option waqf-other<?php echo $active_is_other ? ' active' : ''; ?>" data-other="1" aria-pressed="<?php echo $active_is_other ? 'true' : 'false'; ?>" <?php echo $is_complete ? 'disabled aria-disabled="true"' : ''; ?> >
                                         <span class="waqf-value">مبلغ مخصص</span>
-                                    </button>
+                                    </button> -->
                                 </div>
                             </div>
 
