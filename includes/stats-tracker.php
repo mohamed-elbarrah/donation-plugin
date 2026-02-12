@@ -176,7 +176,7 @@ class Donation_App_Stats {
 
     /**
      * Aggregate stats for the requested period.
-     * Returns keys: total_visits, unique_visits, checkout_starts, abandoned_checkouts, orders
+     * Returns keys: total_visits, unique_visits, checkout_visits, checkout_unique_visits, abandoned_checkouts, orders
      */
     public static function get_aggregated_stats($period = 'monthly') {
         global $wpdb;
@@ -210,8 +210,9 @@ class Donation_App_Stats {
         // unique visits by session
         $results['unique_visits'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT COALESCE(NULLIF(session_id,''), 'anon')) FROM {$table} WHERE event_type = %s AND created_at >= %s", 'page_view', $start));
 
-        // checkout starts
-        $results['checkout_starts'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE event_type = %s AND created_at >= %s", 'checkout_start', $start));
+        // checkout visits (total and unique)
+        $results['checkout_visits'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE event_type = %s AND created_at >= %s", 'checkout_start', $start));
+        $results['checkout_unique_visits'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT COALESCE(NULLIF(session_id,''), 'anon')) FROM {$table} WHERE event_type = %s AND created_at >= %s", 'checkout_start', $start));
 
         // successful orders (processing|completed) — approximate by counting order_complete events
         $results['orders'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT order_id) FROM {$table} WHERE event_type = %s AND created_at >= %s", 'order_complete', $start));

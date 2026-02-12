@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) exit;
 
 /**
  * Admin UI for Donation App store statistics
- * - Adds menu item "احصائيات المتجر"
+ * - Adds menu item "إحصائيات المنصة"
  * - Renders a simple page with period filters and charts
  */
 
@@ -12,8 +12,8 @@ function donation_app_admin_menu() {
     if (!current_user_can($capability)) $capability = 'manage_options';
 
     add_menu_page(
-        'احصائيات المتجر',
-        'احصائيات المتجر',
+        'إحصائيات المنصة',
+        'إحصائيات المنصة',
         $capability,
         'donation-app-stats',
         'donation_app_stats_page_render',
@@ -31,8 +31,8 @@ function donation_app_stats_page_render() {
     // Basic page: selectors and containers for charts and tables
     ?>
     <div class="wrap">
-        <h1>احصائيات المتجر</h1>
-        <p>عرض احصائيات المتجر: الزيارات، الزوار الفريدين، بدءات الدفع، الطلبات المكتملة، وطلبات مهجورة.</p>
+        <h1>إحصائيات المنصة</h1>
+        <p>عرض إحصائيات المنصة: الزيارات، الزوار الفريدين،زيارات صفحة الدفع، الطلبات المكتملة، وطلبات مهجورة.</p>
 
         <label for="donation-stats-period">الفترة:</label>
         <select id="donation-stats-period">
@@ -47,7 +47,9 @@ function donation_app_stats_page_render() {
         <div id="donation-stats-summary" style="margin-top:18px;display:flex;gap:12px;flex-wrap:wrap;"></div>
 
         <h2>المخطط</h2>
-        <canvas id="donation-stats-chart" width="800" height="300"></canvas>
+        <div style="width:800px; max-width:100%; height:300px;">
+          <canvas id="donation-stats-chart" style="width:100%; height:100%;"></canvas>
+        </div>
 
         <h2>التفاصيل</h2>
         <table class="widefat fixed" id="donation-stats-table">
@@ -73,15 +75,18 @@ function donation_app_stats_enqueue_admin_assets($hook) {
           .then(r=>r.json());
       };
 
+      let statsChart = null;
+
       const render = function(d){
         const container = document.getElementById('donation-stats-summary');
         container.innerHTML = '';
         const items = [
-          ['الزيارات', d.total_visits],
-          ['الزوار الفريدين', d.unique_visits],
-          ['بدءات الدفع', d.checkout_starts],
-          ['الطلبات المكتملة', d.orders],
-          ['الطلبات المهجورة', d.abandoned_checkouts]
+          ['الزيارات', d.total_visits || 0],
+          ['الزوار الفريدين', d.unique_visits || 0],
+          ['زيارات صفحة الدفع', d.checkout_visits || 0],
+          ['زوار الدفع الفريدين', d.checkout_unique_visits || 0],
+          ['الطلبات المكتملة', d.orders || 0],
+          ['الطلبات المهجورة', d.abandoned_checkouts || 0]
         ];
         items.forEach(i=>{
           const el = document.createElement('div');
@@ -89,6 +94,41 @@ function donation_app_stats_enqueue_admin_assets($hook) {
           el.innerHTML = '<strong>'+i[0] + '</strong><div style=\'font-size:20px\'>'+i[1]+'</div>';
           container.appendChild(el);
         });
+
+        // Chart: render metrics as a simple bar chart
+        try {
+          const ctx = document.getElementById('donation-stats-chart').getContext('2d');
+          const chartLabels = items.map(i=>i[0]);
+          const chartData = items.map(i=>Number(i[1] || 0));
+
+          if (statsChart) {
+            statsChart.data.labels = chartLabels;
+            statsChart.data.datasets[0].data = chartData;
+            statsChart.update();
+          } else {
+            statsChart = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: chartLabels,
+                datasets: [{
+                  label: 'احصائيات المنصة',
+                  data: chartData,
+                  backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: { beginAtZero: true }
+                }
+              }
+            });
+          }
+        } catch (e) {
+          // fail silently if Chart.js isn't available
+          console.warn('Chart render failed', e);
+        }
 
         // table
         const tbody = document.querySelector('#donation-stats-table tbody');
