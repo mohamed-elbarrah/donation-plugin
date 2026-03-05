@@ -84,6 +84,7 @@ class Donation_Product_Analytics {
         $start = intval($_REQUEST['start'] ?? 0);
         $length = intval($_REQUEST['length'] ?? 25);
         $search = sanitize_text_field($_REQUEST['search']['value'] ?? '');
+        $status_filter = isset($_REQUEST['status']) ? sanitize_text_field($_REQUEST['status']) : '';
 
         list($start_date, $end_date) = $this->parse_date_range();
         $where_date = '';
@@ -105,16 +106,23 @@ class Donation_Product_Analytics {
         $select = "SELECT opl.product_id AS product_id, p.post_title AS product_name, 
             SUM(opl.product_net_revenue) AS product_net_revenue, 
             SUM(opl.product_qty) AS qty_sold,
-            COUNT(DISTINCT CASE WHEN os.status = 'completed' THEN opl.order_id END) AS completed_orders,
-            COUNT(DISTINCT CASE WHEN os.status = 'processing' THEN opl.order_id END) AS processing_orders,
-            COUNT(DISTINCT CASE WHEN os.status = 'failed' THEN opl.order_id END) AS failed_orders,
-            COUNT(DISTINCT CASE WHEN os.status = 'cancelled' THEN opl.order_id END) AS cancelled_orders,
-            COUNT(DISTINCT CASE WHEN os.status = 'refunded' THEN opl.order_id END) AS refunded_orders
+            COUNT(DISTINCT CASE WHEN LOWER(REPLACE(os.status, 'wc-', '')) = 'completed' THEN opl.order_id END) AS completed_orders,
+            COUNT(DISTINCT CASE WHEN LOWER(REPLACE(os.status, 'wc-', '')) = 'processing' THEN opl.order_id END) AS processing_orders,
+            COUNT(DISTINCT CASE WHEN LOWER(REPLACE(os.status, 'wc-', '')) = 'failed' THEN opl.order_id END) AS failed_orders,
+            COUNT(DISTINCT CASE WHEN LOWER(REPLACE(os.status, 'wc-', '')) = 'cancelled' THEN opl.order_id END) AS cancelled_orders,
+            COUNT(DISTINCT CASE WHEN LOWER(REPLACE(os.status, 'wc-', '')) = 'refunded' THEN opl.order_id END) AS refunded_orders
             FROM {$opl} opl
             JOIN {$os} os ON opl.order_id = os.order_id
             JOIN {$posts} p ON p.ID = opl.product_id
             WHERE 1=1 {$where_date} {$search_sql}
             GROUP BY opl.product_id";
+
+        // If a status filter was provided, we only want products that have at least one
+        // order with that normalized status. Build a filtered sub-condition for counting.
+        if ($status_filter) {
+            $status_norm = strtolower($status_filter);
+            $where_date .= $wpdb->prepare(" AND LOWER(REPLACE(os.status, 'wc-', '')) = %s", $status_norm);
+        }
 
         // Count total distinct products matching filters
         $count_sql = "SELECT COUNT(*) FROM (SELECT 1 FROM {$opl} opl JOIN {$os} os ON opl.order_id = os.order_id JOIN {$posts} p ON p.ID = opl.product_id WHERE 1=1 {$where_date} {$search_sql} GROUP BY opl.product_id) tmp";
@@ -199,7 +207,8 @@ class Donation_Product_Analytics {
             $where .= $wpdb->prepare(" AND os.date_created BETWEEN %s AND %s", $start_date, $end_date);
         }
         if ($status_filter) {
-            $where .= $wpdb->prepare(" AND os.status = %s", $status_filter);
+            $status_norm = strtolower($status_filter);
+            $where .= $wpdb->prepare(" AND LOWER(REPLACE(os.status, 'wc-', '')) = %s", $status_norm);
         }
 
         // Count

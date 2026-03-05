@@ -16,6 +16,7 @@
                     order: data.order,
                     start_date: $('#da-start').val(),
                     end_date: $('#da-end').val()
+                    ,status: $('#da-product-status').val()
                 };
                 $.post(donation_analytics_params.ajax_url, params, function(resp){
                     if (!resp || !resp.success) {
@@ -52,6 +53,11 @@
         $('#donation-analytics-products').on('click', '.donation-analytics-view-orders', function(){
             var pid = $(this).data('product-id');
             openOrdersModal(pid);
+        });
+
+        // reload products when status filter changes
+        $('#da-product-status').on('change', function(){
+            productsTable.ajax.reload();
         });
     }
 
@@ -111,6 +117,13 @@
             console.warn('DataTables not available in admin; please ensure it is loaded');
             return;
         }
+
+    // when status in the orders modal changes, reload orders table instantly
+    $(document).on('change', '#da-order-status', function(){
+        if ($.fn.DataTable && $.fn.DataTable.isDataTable('#donation-analytics-orders-table')) {
+            $('#donation-analytics-orders-table').DataTable().ajax.reload();
+        }
+    });
         // set default date range to last 30 days if empty
         if (!$('#da-start').val() && !$('#da-end').val()) {
             var end = new Date();

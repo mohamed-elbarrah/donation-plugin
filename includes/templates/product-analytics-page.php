@@ -10,6 +10,16 @@
         <button class="button" data-range="7">Last 7 days</button>
         <button class="button" data-range="30">Last 30 days</button>
         <button class="button" data-range="year">This year</button>
+        <label style="margin-left:12px;">Status:
+            <select id="da-product-status">
+                <option value="">All</option>
+                <option value="completed">Completed</option>
+                <option value="processing">Processing</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="failed">Failed</option>
+                <option value="refunded">Refunded</option>
+            </select>
+        </label>
         <button id="da-refresh" class="button button-primary">Apply</button>
     </div>
 
