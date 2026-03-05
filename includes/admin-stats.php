@@ -156,3 +156,9 @@ function donation_app_stats_enqueue_admin_assets($hook) {
     wp_add_inline_script('donation-app-chartjs', $js);
 }
 add_action('admin_enqueue_scripts', 'donation_app_stats_enqueue_admin_assets');
+
+// Load product analytics admin (submenu under Platform Statistics)
+$analytics_file = plugin_dir_path(__FILE__) . 'admin-product-analytics.php';
+if (file_exists($analytics_file)) {
+  require_once $analytics_file;
+}
