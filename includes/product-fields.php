@@ -4,25 +4,38 @@ if (!defined('ABSPATH')) exit;
 if (!function_exists('donation_app_get_collected_amount')) {
     function donation_app_get_collected_amount($product_id)
     {
+        // Manual starting amount (optional admin-entered value)
         $manual = floatval(get_post_meta($product_id, '_donation_collected', true));
+
+        // Sum the actual line totals for this product across completed orders.
+        // We rely on WooCommerce APIs (wc_get_orders, WC_Order, WC_Order_Item)
+        // and sum the item total (`get_total()`), which reflects the final
+        // line amount (price * qty minus discounts) — this matches how
+        // WooCommerce records product revenue for completed orders.
         $sum = 0.0;
-        $statuses = ['completed', 'processing', 'on-hold'];
 
         $orders = wc_get_orders([
-            'limit' => -1,
-            'status' => $statuses,
+            'limit'  => -1,
+            'status' => 'completed',
         ]);
 
-        foreach ($orders as $order) {
-            foreach ($order->get_items() as $item) {
-                if ($item->get_product_id() == $product_id) {
-                    $don = $item->get_meta('donation_amount');
-                    if (is_numeric($don)) $sum += floatval($don);
+        if (!empty($orders) && is_array($orders)) {
+            foreach ($orders as $order) {
+                // Ensure we have a WC_Order object
+                if (!is_a($order, 'WC_Order')) continue;
+
+                foreach ($order->get_items() as $item) {
+                    // Only consider line items that reference this product ID
+                    if (method_exists($item, 'get_product_id') && intval($item->get_product_id()) === intval($product_id)) {
+                        // `get_total()` returns the line total for the item (float)
+                        $sum += floatval($item->get_total());
+                    }
                 }
             }
         }
 
-        return $manual + $sum;
+        // Return admin-entered manual amount plus computed sum from completed orders
+        return max(0, $manual + $sum);
     }
 }
 
